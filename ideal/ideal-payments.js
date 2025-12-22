@@ -1,8 +1,9 @@
-// Payments Management JavaScript
+// Payments Management - Complete Workflow Integration
 
 document.addEventListener('DOMContentLoaded', function() {
     checkUserSession();
     loadPaymentsData();
+    checkInvoiceForPayment();
     startAutoRefresh();
 });
 
@@ -16,88 +17,33 @@ function checkUserSession() {
         `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} - ${user.branch.charAt(0).toUpperCase() + user.branch.slice(1)} Branch`;
 }
 
-// Sample payments data
-const paymentsData = [
-    { 
-        id: 'PAY001', 
-        date: '2024-01-16', 
-        type: 'received', 
-        party: 'ABC Industries', 
-        reference: 'INV001',
-        method: 'bank',
-        amount: 51920,
-        status: 'cleared',
-        transactionRef: 'TXN123456789'
-    },
-    { 
-        id: 'PAY002', 
-        date: '2024-01-15', 
-        type: 'paid', 
-        party: 'Dubai Agent', 
-        reference: 'JOB001',
-        method: 'bank',
-        amount: 36000,
-        status: 'cleared',
-        transactionRef: 'TXN987654321'
-    },
-    { 
-        id: 'PAY003', 
-        date: '2024-01-14', 
-        type: 'received', 
-        party: 'XYZ Exports', 
-        reference: 'INV002',
-        method: 'online',
-        amount: 45312,
-        status: 'cleared',
-        transactionRef: 'UPI123456'
-    },
-    { 
-        id: 'PAY004', 
-        date: '2024-01-13', 
-        type: 'paid', 
-        party: 'Singapore Agent', 
-        reference: 'JOB002',
-        method: 'bank',
-        amount: 30720,
-        status: 'cleared',
-        transactionRef: 'SWIFT789012'
-    },
-    { 
-        id: 'PAY005', 
-        date: '2024-01-12', 
-        type: 'received', 
-        party: 'Global Trading', 
-        reference: 'INV003',
-        method: 'cheque',
-        amount: 73632,
-        status: 'pending',
-        transactionRef: 'CHQ001234'
+// Check if coming from invoice for payment recording
+function checkInvoiceForPayment() {
+    const invoiceNo = sessionStorage.getItem('recordPaymentForInvoice');
+    if (invoiceNo) {
+        sessionStorage.removeItem('recordPaymentForInvoice');
+        showRecordPaymentForInvoice(invoiceNo);
     }
-];
+}
 
 function loadPaymentsData() {
+    // Get payments from workflow manager
+    const payments = window.workflowManager.getPayments();
+    const invoices = window.workflowManager.getInvoices();
+    
     // Calculate stats
-    const totalReceived = paymentsData
-        .filter(p => p.type === 'received' && p.status === 'cleared')
-        .reduce((sum, p) => sum + p.amount, 0);
+    const totalPayments = payments.length;
+    const todayPayments = payments.filter(p => p.date === new Date().toISOString().split('T')[0]).length;
+    const totalReceived = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const pendingInvoices = invoices.filter(i => i.status === 'sent').length;
     
-    const totalPaid = paymentsData
-        .filter(p => p.type === 'paid' && p.status === 'cleared')
-        .reduce((sum, p) => sum + p.amount, 0);
-    
-    const netBalance = totalReceived - totalPaid;
-    
-    const monthPayments = paymentsData
-        .filter(p => p.status === 'cleared')
-        .reduce((sum, p) => sum + p.amount, 0);
-    
-    document.getElementById('totalReceived').textContent = '₹' + totalReceived.toLocaleString('en-IN');
-    document.getElementById('totalPaid').textContent = '₹' + totalPaid.toLocaleString('en-IN');
-    document.getElementById('netBalance').textContent = '₹' + netBalance.toLocaleString('en-IN');
-    document.getElementById('monthPayments').textContent = '₹' + monthPayments.toLocaleString('en-IN');
+    document.getElementById('totalReceived').textContent = '₹' + Math.round(totalReceived * 80).toLocaleString('en-IN');
+    document.getElementById('totalPaid').textContent = '₹0'; // Agent payments not implemented yet
+    document.getElementById('netBalance').textContent = '₹' + Math.round(totalReceived * 80).toLocaleString('en-IN');
+    document.getElementById('monthPayments').textContent = '₹' + Math.round(totalReceived * 80).toLocaleString('en-IN');
     
     // Load table data
-    displayPayments(paymentsData);
+    displayPayments(payments);
 }
 
 function displayPayments(payments) {
@@ -105,24 +51,25 @@ function displayPayments(payments) {
     tbody.innerHTML = '';
     
     payments.forEach(payment => {
-        const statusClass = payment.status === 'cleared' ? 'success' : 'pending';
-        const typeIcon = payment.type === 'received' ? '📥' : '📤';
-        const typeClass = payment.type === 'received' ? 'received' : 'paid';
+        const statusClass = getPaymentStatusClass(payment.status);
         
         const row = `
             <tr>
-                <td><strong>${payment.id}</strong></td>
+                <td>
+                    <strong>${payment.id}</strong>
+                    <br><small>INV: ${payment.invoiceNo}</small>
+                </td>
                 <td>${formatDate(payment.date)}</td>
                 <td>
-                    <span class="payment-type ${typeClass}">
-                        ${typeIcon} ${payment.type.toUpperCase()}
+                    <span class="payment-type received">
+                        📥 RECEIVED
                     </span>
                 </td>
-                <td>${payment.party}</td>
-                <td>${payment.reference}</td>
-                <td>${getMethodName(payment.method)}</td>
-                <td class="${typeClass}">
-                    ${payment.type === 'received' ? '+' : '-'}₹${payment.amount.toLocaleString('en-IN')}
+                <td>${payment.customer}</td>
+                <td>${payment.invoiceNo}</td>
+                <td>${payment.method || 'Bank Transfer'}</td>
+                <td class="received">
+                    +₹${Math.round((payment.amount || 0) * 80).toLocaleString('en-IN')}
                 </td>
                 <td><span class="status-${statusClass}">${payment.status.toUpperCase()}</span></td>
                 <td>
@@ -135,19 +82,64 @@ function displayPayments(payments) {
     });
 }
 
-function getMethodName(method) {
-    const methods = {
-        'bank': 'Bank Transfer',
-        'cash': 'Cash',
-        'cheque': 'Cheque',
-        'online': 'Online Payment'
-    };
-    return methods[method] || method;
+function getPaymentStatusClass(status) {
+    switch(status) {
+        case 'cleared': return 'success';
+        case 'pending': return 'warning';
+        case 'failed': return 'danger';
+        default: return 'default';
+    }
 }
 
-function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-IN');
+// Show payment recording modal for specific invoice
+function showRecordPaymentForInvoice(invoiceNo) {
+    const invoice = window.workflowManager.getInvoices().find(i => i.no === invoiceNo);
+    if (!invoice) return;
+    
+    // Pre-fill form with invoice data
+    document.getElementById('reference').value = invoiceNo;
+    document.getElementById('party').value = invoice.customer;
+    document.getElementById('amount').value = (invoice.total || 0).toFixed(2);
+    
+    // Store invoice reference
+    document.getElementById('addPaymentForm').dataset.invoiceNo = invoiceNo;
+    
+    showAddPayment();
+    
+    alert(`💳 Record payment for ${invoiceNo}\n\n📋 Invoice Details:\nCustomer: ${invoice.customer}\nAmount: $${invoice.total}\n\n🎯 Enter payment details to complete transaction`);
+}
+
+function showAddPayment() {
+    document.getElementById('addPaymentModal').style.display = 'block';
+    document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+}
+
+function viewPayment(paymentId) {
+    const payment = window.workflowManager.getPayments().find(p => p.id === paymentId);
+    if (!payment) return;
+    
+    let details = `💳 Payment Details - ${paymentId}\n\n`;
+    details += `👤 Customer: ${payment.customer}\n`;
+    details += `🧾 Invoice: ${payment.invoiceNo}\n`;
+    details += `💼 Job: ${payment.jobNo}\n`;
+    details += `📅 Date: ${formatDate(payment.date)}\n\n`;
+    
+    details += `💰 Payment Details:\n`;
+    details += `Amount: $${(payment.amount || 0).toFixed(2)}\n`;
+    details += `Method: ${payment.method || 'Bank Transfer'}\n`;
+    details += `Reference: ${payment.reference || 'N/A'}\n`;
+    details += `Bank: ${payment.bank || 'Default Bank'}\n\n`;
+    
+    details += `📋 Status: ${payment.status.toUpperCase()}`;
+    
+    alert(details);
+}
+
+function printReceipt(paymentId) {
+    const payment = window.workflowManager.getPayments().find(p => p.id === paymentId);
+    if (!payment) return;
+    
+    alert(`🖨️ Printing receipt for ${paymentId}\n\nReceipt Details:\nCustomer: ${payment.customer}\nAmount: $${payment.amount}\nDate: ${formatDate(payment.date)}\n\nPDF generation - Coming Soon!`);
 }
 
 function filterPayments() {
@@ -155,91 +147,92 @@ function filterPayments() {
     const methodFilter = document.getElementById('methodFilter').value;
     const searchTerm = document.getElementById('searchPayment').value.toLowerCase();
     
-    let filtered = paymentsData;
+    let payments = window.workflowManager.getPayments();
     
     if (typeFilter !== 'all') {
-        filtered = filtered.filter(payment => payment.type === typeFilter);
+        // For now, all payments are 'received' type
+        if (typeFilter !== 'received') {
+            payments = [];
+        }
     }
     
     if (methodFilter !== 'all') {
-        filtered = filtered.filter(payment => payment.method === methodFilter);
+        payments = payments.filter(payment => (payment.method || 'bank') === methodFilter);
     }
     
     if (searchTerm) {
-        filtered = filtered.filter(payment => 
+        payments = payments.filter(payment => 
             payment.id.toLowerCase().includes(searchTerm) ||
-            payment.party.toLowerCase().includes(searchTerm) ||
-            payment.reference.toLowerCase().includes(searchTerm) ||
-            payment.transactionRef.toLowerCase().includes(searchTerm)
+            payment.customer.toLowerCase().includes(searchTerm) ||
+            payment.invoiceNo.toLowerCase().includes(searchTerm) ||
+            payment.jobNo.toLowerCase().includes(searchTerm)
         );
     }
     
-    displayPayments(filtered);
-}
-
-function showAddPayment() {
-    document.getElementById('addPaymentModal').style.display = 'block';
-    // Set today's date
-    document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+    displayPayments(payments);
 }
 
 function closeModal() {
     document.getElementById('addPaymentModal').style.display = 'none';
     document.getElementById('addPaymentForm').reset();
-}
-
-function viewPayment(id) {
-    const payment = paymentsData.find(p => p.id === id);
-    const typeText = payment.type === 'received' ? 'Payment Received' : 'Payment Made';
-    
-    alert(`Payment Details:\n\nPayment ID: ${payment.id}\nDate: ${formatDate(payment.date)}\nType: ${typeText}\nParty: ${payment.party}\nReference: ${payment.reference}\nMethod: ${getMethodName(payment.method)}\nAmount: ₹${payment.amount.toLocaleString('en-IN')}\nTransaction Ref: ${payment.transactionRef}\nStatus: ${payment.status.toUpperCase()}`);
-}
-
-function printReceipt(id) {
-    alert(`Printing payment receipt for ${id}...\nReceipt generation - Coming Soon!`);
+    delete document.getElementById('addPaymentForm').dataset.invoiceNo;
 }
 
 function showPaymentReport() {
-    const received = paymentsData
-        .filter(p => p.type === 'received' && p.status === 'cleared')
-        .reduce((sum, p) => sum + p.amount, 0);
+    const payments = window.workflowManager.getPayments();
+    const totalReceived = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const clearedPayments = payments.filter(p => p.status === 'cleared');
+    const pendingPayments = payments.filter(p => p.status === 'pending');
     
-    const paid = paymentsData
-        .filter(p => p.type === 'paid' && p.status === 'cleared')
-        .reduce((sum, p) => sum + p.amount, 0);
+    let report = `📊 Payment Report\n\n`;
+    report += `Total Received: $${totalReceived.toFixed(2)}\n`;
+    report += `Cleared Payments: ${clearedPayments.length}\n`;
+    report += `Pending Payments: ${pendingPayments.length}\n\n`;
     
-    const pending = paymentsData
-        .filter(p => p.status === 'pending')
-        .reduce((sum, p) => sum + p.amount, 0);
+    if (clearedPayments.length > 0) {
+        report += `Recent Payments:\n`;
+        clearedPayments.slice(0, 3).forEach(p => {
+            report += `${p.id}: ${p.customer} - $${p.amount.toFixed(2)}\n`;
+        });
+    }
     
-    alert(`Payment Report - This Month:\n\nTotal Received: ₹${received.toLocaleString('en-IN')}\nTotal Paid: ₹${paid.toLocaleString('en-IN')}\nNet Balance: ₹${(received - paid).toLocaleString('en-IN')}\nPending Clearance: ₹${pending.toLocaleString('en-IN')}\n\nDetailed payment report - Coming Soon!`);
+    alert(report);
 }
 
-// Form submission
+// Form submission for payment recording
 document.getElementById('addPaymentForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const newPayment = {
-        id: generatePaymentId(),
-        date: document.getElementById('paymentDate').value,
-        type: document.getElementById('paymentType').value,
-        party: document.getElementById('party').value,
-        reference: document.getElementById('reference').value,
+    const invoiceNo = this.dataset.invoiceNo;
+    if (!invoiceNo) {
+        alert('No invoice selected!');
+        return;
+    }
+    
+    const paymentData = {
+        amount: parseFloat(document.getElementById('amount').value) || 0,
         method: document.getElementById('paymentMethod').value,
-        amount: parseFloat(document.getElementById('amount').value),
-        status: 'cleared', // Default to cleared for demo
-        transactionRef: document.getElementById('transactionRef').value || 'N/A'
+        reference: document.getElementById('transactionRef').value || '',
+        bank: 'Default Bank',
+        notes: ''
     };
     
-    paymentsData.unshift(newPayment);
-    loadPaymentsData();
-    closeModal();
-    alert('Payment recorded successfully!');
+    // Record payment for invoice
+    const payment = window.workflowManager.recordPayment(invoiceNo, paymentData);
+    
+    if (payment) {
+        alert(`✅ Payment Recorded Successfully!\n\n💳 Payment: ${payment.id}\n👤 Customer: ${payment.customer}\n💰 Amount: $${payment.amount.toFixed(2)}\n\n🎯 Job completed and workflow closed!`);
+        
+        loadPaymentsData();
+        closeModal();
+    } else {
+        alert('❌ Failed to record payment!');
+    }
 });
 
-function generatePaymentId() {
-    const count = paymentsData.length + 1;
-    return `PAY${count.toString().padStart(3, '0')}`;
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN');
 }
 
 function startAutoRefresh() {

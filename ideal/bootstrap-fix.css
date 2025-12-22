@@ -29,6 +29,38 @@ body {
     height: 100vh;
     overflow-y: auto;
     z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.sidebar.collapsed {
+    transform: translateX(-100%);
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1001;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
 }
 
 .logo {
@@ -77,11 +109,39 @@ body {
     text-decoration: none;
 }
 
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 0 0 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
 .user-info {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    margin-top: auto;
+    background: rgba(0,0,0,0.1);
+}
+
+.user-info p {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.9);
 }
 
 .logout-btn {
@@ -92,11 +152,13 @@ body {
     border-radius: 4px;
     cursor: pointer;
     width: 100%;
-    margin-top: 10px;
+    font-size: 0.9rem;
+    transition: all 0.3s;
 }
 
 .logout-btn:hover {
     background: rgba(255,255,255,0.3);
+    transform: translateY(-1px);
 }
 
 /* Main Content */
@@ -438,12 +500,25 @@ body {
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
     .sidebar {
-        width: 200px;
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .mobile-overlay.active {
+        display: block;
     }
     
     .main-content {
-        margin-left: 200px;
+        margin-left: 0;
+        padding: 70px 15px 15px;
     }
     
     .stats-grid {
@@ -467,18 +542,16 @@ body {
 }
 
 @media (max-width: 480px) {
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-    }
-    
-    .main-content {
-        margin-left: 0;
-    }
-    
     .stats-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
     }
 }
 

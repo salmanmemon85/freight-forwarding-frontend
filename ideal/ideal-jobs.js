@@ -1,4 +1,4 @@
-// Jobs Management JavaScript
+// Jobs Management - Complete Workflow Integration
 
 document.addEventListener('DOMContentLoaded', function() {
     checkUserSession();
@@ -16,89 +16,25 @@ function checkUserSession() {
         `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} - ${user.branch.charAt(0).toUpperCase() + user.branch.slice(1)} Branch`;
 }
 
-// Sample jobs data
-const jobsData = [
-    { 
-        no: 'JOB001', 
-        date: '2024-01-15', 
-        customer: 'ABC Industries', 
-        route: 'Mumbai → Dubai',
-        container: 'MSCU1234567',
-        mode: 'Sea',
-        status: 'in-transit',
-        eta: '2024-01-22',
-        shipper: 'ABC Industries Ltd, Mumbai',
-        consignee: 'Dubai Trading Co, Dubai',
-        cargo: 'Electronics - 500 KG'
-    },
-    { 
-        no: 'JOB002', 
-        date: '2024-01-14', 
-        customer: 'XYZ Exports', 
-        route: 'Chennai → Singapore',
-        container: 'OOLU9876543',
-        mode: 'Sea',
-        status: 'customs',
-        eta: '2024-01-20',
-        shipper: 'XYZ Exports Pvt Ltd, Chennai',
-        consignee: 'Singapore Imports, Singapore',
-        cargo: 'Textiles - 1200 KG'
-    },
-    { 
-        no: 'JOB003', 
-        date: '2024-01-13', 
-        customer: 'Global Trading', 
-        route: 'Delhi → Hamburg',
-        container: 'HAPAG567890',
-        mode: 'Sea',
-        status: 'delivered',
-        eta: '2024-01-18',
-        shipper: 'Global Trading Ltd, Delhi',
-        consignee: 'Hamburg Logistics, Germany',
-        cargo: 'Machinery - 2500 KG'
-    },
-    { 
-        no: 'JOB004', 
-        date: '2024-01-15', 
-        customer: 'Tech Solutions', 
-        route: 'Bangalore → New York',
-        container: 'AWB-123456789',
-        mode: 'Air',
-        status: 'shipped',
-        eta: '2024-01-17',
-        shipper: 'Tech Solutions Inc, Bangalore',
-        consignee: 'NY Tech Corp, New York',
-        cargo: 'Software Equipment - 800 KG'
-    },
-    { 
-        no: 'JOB005', 
-        date: '2024-01-12', 
-        customer: 'Food Corp', 
-        route: 'Kochi → London',
-        container: 'BA-987654321',
-        mode: 'Air',
-        status: 'completed',
-        eta: '2024-01-15',
-        shipper: 'Food Corp Ltd, Kochi',
-        consignee: 'London Foods, UK',
-        cargo: 'Spices - 300 KG'
-    }
-];
-
 function loadJobsData() {
-    // Calculate stats
-    const active = jobsData.filter(j => ['booking', 'documentation', 'shipped', 'in-transit', 'customs'].includes(j.status)).length;
-    const inTransit = jobsData.filter(j => j.status === 'in-transit').length;
-    const delivered = jobsData.filter(j => j.status === 'delivered' || j.status === 'completed').length;
-    const thisMonth = jobsData.length; // All jobs are from this month in sample data
+    // Get jobs from workflow manager
+    const jobs = window.workflowManager.getJobs();
     
-    document.getElementById('activeJobs').textContent = active;
-    document.getElementById('inTransit').textContent = inTransit;
-    document.getElementById('delivered').textContent = delivered;
-    document.getElementById('monthJobs').textContent = thisMonth;
+    console.log('Loading jobs:', jobs.map(j => ({no: j.no, status: j.status})));
+    
+    // Calculate stats
+    const activeJobs = jobs.filter(j => ['open', 'in-progress'].includes(j.status)).length;
+    const completedJobs = jobs.filter(j => j.status === 'completed').length;
+    const totalProfit = jobs.reduce((sum, j) => sum + (j.profit || 0), 0);
+    const avgProfit = jobs.length > 0 ? Math.round(totalProfit / jobs.length) : 0;
+    
+    document.getElementById('activeJobs').textContent = activeJobs;
+    document.getElementById('inTransit').textContent = jobs.filter(j => j.status === 'in-progress').length;
+    document.getElementById('delivered').textContent = completedJobs;
+    document.getElementById('monthJobs').textContent = jobs.length;
     
     // Load table data
-    displayJobs(jobsData);
+    displayJobs(jobs);
 }
 
 function displayJobs(jobs) {
@@ -107,25 +43,36 @@ function displayJobs(jobs) {
     
     jobs.forEach(job => {
         const statusClass = getStatusClass(job.status);
-        const modeIcon = getModeIcon(job.mode);
+        const nextAction = getNextJobAction(job.status);
+        const workflow = window.workflowManager.getWorkflowChain(job.enquiryNo);
         
         const row = `
             <tr>
-                <td><strong>${job.no}</strong></td>
+                <td>
+                    <strong>${job.no}</strong>
+                    <br><small>QUO: ${job.quotationNo}</small>
+                </td>
                 <td>${formatDate(job.date)}</td>
-                <td>${job.customer}</td>
                 <td>
-                    <div>${modeIcon} ${job.route}</div>
+                    <div><strong>${job.customer}</strong></div>
+                    <small>${job.contact} | ${job.phone}</small>
                 </td>
                 <td>
-                    <div><strong>${job.container}</strong></div>
-                    <small>${job.mode} Freight</small>
+                    <div>${job.type} | ${job.mode}</div>
+                    <small>${job.origin} → ${job.destination}</small>
                 </td>
-                <td><span class="status-${statusClass}">${job.status.toUpperCase().replace('-', ' ')}</span></td>
-                <td>${formatDate(job.eta)}</td>
                 <td>
-                    <button class="btn-small" onclick="viewJob('${job.no}')">👁️ View</button>
-                    <button class="btn-small" onclick="trackJob('${job.no}')">📍 Track</button>
+                    <div>${job.commodity}</div>
+                    <small>${job.weight} KG | ${job.cbm} CBM</small>
+                </td>
+                <td>
+                    <div>$${(job.profit || 0).toFixed(1)}</div>
+                    <small>${job.customerRate || 0}/CBM</small>
+                </td>
+                <td><span class="status-${statusClass}">${job.status.toUpperCase()}</span></td>
+                <td>
+                    <button class="btn-small" onclick="viewJobDetails('${job.no}')">👁️ View</button>
+                    <button class="btn-small btn-primary" onclick="${nextAction.action}('${job.no}')">${nextAction.label}</button>
                 </td>
             </tr>
         `;
@@ -133,57 +80,171 @@ function displayJobs(jobs) {
     });
 }
 
+function getNextJobAction(status) {
+    switch(status) {
+        case 'open': return { action: 'startOperations', label: '🚚 Start Ops' };
+        case 'in-progress': return { action: 'uploadDocuments', label: '📄 B/L Docs' };
+        case 'documented': return { action: 'createInvoice', label: '🧾 Invoice' };
+        case 'invoiced': return { action: 'viewJobDetails', label: '💳 Payment' };
+        case 'completed': return { action: 'closeJob', label: '🔒 Close' };
+        default: return { action: 'viewJobDetails', label: '👁️ View' };
+    }
+}
+
 function getStatusClass(status) {
     switch(status) {
-        case 'booking': return 'new';
-        case 'documentation': return 'pending';
-        case 'shipped': return 'info';
-        case 'in-transit': return 'warning';
-        case 'customs': return 'pending';
-        case 'delivered': return 'success';
+        case 'open': return 'new';
+        case 'in-progress': return 'pending';
+        case 'documented': return 'info';
+        case 'invoiced': return 'warning';
         case 'completed': return 'success';
         default: return 'default';
     }
 }
 
-function getModeIcon(mode) {
-    switch(mode) {
-        case 'Sea': return '🚢';
-        case 'Air': return '✈️';
-        case 'Road': return '🚛';
-        default: return '📦';
+// Start Operations for a Job
+function startOperations(jobNo) {
+    const job = window.workflowManager.getJobs().find(j => j.no === jobNo);
+    if (!job) return;
+    
+    // Update job status to in-progress
+    const data = window.workflowManager.getData();
+    const jobIndex = data.jobs.findIndex(j => j.no === jobNo);
+    if (jobIndex !== -1) {
+        data.jobs[jobIndex].status = 'in-progress';
+        data.jobs[jobIndex].operationsStarted = new Date().toISOString();
+        data.jobs[jobIndex].etd = prompt('Enter ETD (Expected Time of Departure):') || '';
+        data.jobs[jobIndex].eta = prompt('Enter ETA (Expected Time of Arrival):') || '';
+        data.jobs[jobIndex].agent = prompt('Select Agent:') || 'Default Agent';
+        window.workflowManager.saveData(data);
     }
+    
+    alert(`🚚 Operations Started for ${jobNo}\n\n📋 Job Details:\nCustomer: ${job.customer}\nRoute: ${job.origin} → ${job.destination}\nCargo: ${job.commodity}\n\n🎯 Next Steps:\n• Upload B/L documents\n• Track shipment\n• Update ETA\n• Create invoice`);
+    
+    loadJobsData();
 }
 
-function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-IN');
+// Upload Documents (B/L, HAWB, etc.)
+function uploadDocuments(jobNo) {
+    sessionStorage.setItem('uploadDocsForJob', jobNo);
+    
+    const job = window.workflowManager.getJobs().find(j => j.no === jobNo);
+    if (!job) return;
+    
+    alert(`📄 Upload Documents for ${jobNo}\n\n📋 Required Documents:\n• MBL/MAWB\n• HBL/HAWB\n• Shipper Invoice\n• Packing List\n• Shipping Bill\n• Form E (if required)\n\n➡️ Redirecting to Documents page...`);
+    
+    window.location.href = 'ideal-documents.html';
+}
+
+// Create Invoice from Job
+function createInvoice(jobNo) {
+    const job = window.workflowManager.getJobs().find(j => j.no === jobNo);
+    if (!job) {
+        alert('Job not found!');
+        return;
+    }
+    
+    // Check if job has documents uploaded
+    if (job.status !== 'documented') {
+        alert('❌ Cannot create invoice!\n\nRequired: Documents must be uploaded first.\n\nCurrent Status: ' + job.status.toUpperCase() + '\n\nPlease upload B/L documents first.');
+        return;
+    }
+    
+    // Store job number for invoice creation
+    sessionStorage.setItem('createInvoiceFromJob', jobNo);
+    
+    alert(`🧾 Creating invoice for ${jobNo}...\n\n📋 Job Details:\nCustomer: ${job.customer}\nRoute: ${job.origin} → ${job.destination}\nProfit: $${job.profit}\n\n➡️ Redirecting to Billing page...`);
+    
+    // Redirect to billing page
+    window.location.href = 'ideal-billing.html';
+}
+
+// Close Job
+function closeJob(jobNo) {
+    const workflow = window.workflowManager.getWorkflowChain(
+        window.workflowManager.getJobs().find(j => j.no === jobNo).enquiryNo
+    );
+    
+    if (!workflow.invoice || !workflow.payment) {
+        alert('❌ Cannot close job!\n\nRequired:\n✓ Invoice created\n✓ Payment received\n\nCurrent Status:\n' + 
+              (workflow.invoice ? '✅ Invoice: ' + workflow.invoice.no : '❌ No invoice') + '\n' +
+              (workflow.payment ? '✅ Payment: ' + workflow.payment.id : '❌ No payment'));
+        return;
+    }
+    
+    const data = window.workflowManager.getData();
+    const jobIndex = data.jobs.findIndex(j => j.no === jobNo);
+    if (jobIndex !== -1) {
+        data.jobs[jobIndex].status = 'closed';
+        data.jobs[jobIndex].closedAt = new Date().toISOString();
+        window.workflowManager.saveData(data);
+    }
+    
+    alert(`🔒 Job Closed Successfully!\n\n💼 Job: ${jobNo}\n✅ All documents complete\n✅ Invoice generated\n✅ Payment received\n\n📊 Job Status: CLOSED`);
+    
+    loadJobsData();
+}
+
+function viewJobDetails(jobNo) {
+    const job = window.workflowManager.getJobs().find(j => j.no === jobNo);
+    const workflow = window.workflowManager.getWorkflowChain(job.enquiryNo);
+    
+    if (!job) return;
+    
+    let details = `💼 Job Details - ${jobNo}\n\n`;
+    details += `👤 Customer: ${job.customer}\n`;
+    details += `📞 Contact: ${job.contact}\n`;
+    details += `🚚 Route: ${job.origin} → ${job.destination}\n`;
+    details += `📦 Cargo: ${job.commodity}\n`;
+    details += `⚖️ Weight: ${job.weight} KG\n`;
+    details += `📊 Volume: ${job.cbm} CBM\n`;
+    details += `💰 Profit: $${job.profit || 0}\n`;
+    details += `📋 Status: ${job.status.toUpperCase()}\n`;
+    
+    if (job.etd) details += `🛫 ETD: ${job.etd}\n`;
+    if (job.eta) details += `🛬 ETA: ${job.eta}\n`;
+    if (job.agent) details += `🤝 Agent: ${job.agent}\n`;
+    
+    details += '\n';
+    
+    if (workflow.invoice) {
+        details += `🧾 Invoice: ${workflow.invoice.no}\n`;
+        details += `💵 Amount: ₹${workflow.invoice.total || 0}\n`;
+    }
+    
+    if (workflow.payment) {
+        details += `💳 Payment: ${workflow.payment.id}\n`;
+        details += `✅ Paid: ₹${workflow.payment.amount || 0}\n`;
+    }
+    
+    alert(details);
 }
 
 function filterJobs() {
     const statusFilter = document.getElementById('statusFilter').value;
     const searchTerm = document.getElementById('searchJob').value.toLowerCase();
     
-    let filtered = jobsData;
+    let jobs = window.workflowManager.getJobs();
     
     if (statusFilter !== 'all') {
-        filtered = filtered.filter(job => job.status === statusFilter);
+        jobs = jobs.filter(job => job.status === statusFilter);
     }
     
     if (searchTerm) {
-        filtered = filtered.filter(job => 
+        jobs = jobs.filter(job => 
             job.no.toLowerCase().includes(searchTerm) ||
             job.customer.toLowerCase().includes(searchTerm) ||
-            job.container.toLowerCase().includes(searchTerm) ||
-            job.route.toLowerCase().includes(searchTerm)
+            job.origin.toLowerCase().includes(searchTerm) ||
+            job.destination.toLowerCase().includes(searchTerm) ||
+            job.commodity.toLowerCase().includes(searchTerm)
         );
     }
     
-    displayJobs(filtered);
+    displayJobs(jobs);
 }
 
 function showAddJob() {
-    document.getElementById('addJobModal').style.display = 'block';
+    alert('Job creation from scratch not available.\n\nJobs are created automatically when quotations are approved.\n\nWorkflow: Enquiry → Quotation → Job\n\nPlease go to Quotations page to convert approved quotations to jobs.');
 }
 
 function showJobTracking() {
@@ -191,82 +252,16 @@ function showJobTracking() {
 }
 
 function closeModal() {
-    document.getElementById('addJobModal').style.display = 'none';
-    document.getElementById('addJobForm').reset();
+    // No modal to close for job creation
 }
 
 function closeTrackingModal() {
     document.getElementById('jobTrackingModal').style.display = 'none';
 }
 
-function viewJob(no) {
-    const job = jobsData.find(j => j.no === no);
-    alert(`Job Details:\n\nJob No: ${job.no}\nCustomer: ${job.customer}\nRoute: ${job.route}\nMode: ${job.mode}\nContainer/AWB: ${job.container}\nShipper: ${job.shipper}\nConsignee: ${job.consignee}\nCargo: ${job.cargo}\nStatus: ${job.status.toUpperCase()}\nETA: ${formatDate(job.eta)}`);
-}
-
-function trackJob(no) {
-    const job = jobsData.find(j => j.no === no);
-    let trackingInfo = '';
-    
-    switch(job.status) {
-        case 'booking':
-            trackingInfo = 'Booking confirmed with agent\nDocumentation in progress';
-            break;
-        case 'documentation':
-            trackingInfo = 'Documents prepared\nWaiting for cargo pickup';
-            break;
-        case 'shipped':
-            trackingInfo = 'Cargo shipped from origin\nIn transit to destination';
-            break;
-        case 'in-transit':
-            trackingInfo = 'Shipment in transit\nExpected arrival: ' + formatDate(job.eta);
-            break;
-        case 'customs':
-            trackingInfo = 'Arrived at destination\nCustoms clearance in progress';
-            break;
-        case 'delivered':
-            trackingInfo = 'Delivered to consignee\nPOD received';
-            break;
-        case 'completed':
-            trackingInfo = 'Job completed successfully\nAll documents closed';
-            break;
-    }
-    
-    alert(`Tracking Info - ${job.no}:\n\n${trackingInfo}`);
-}
-
-// Form submission
-document.getElementById('addJobForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const mode = document.getElementById('transportMode').value;
-    const containerNo = mode === 'Air' ? 'AWB-' + Math.random().toString().substr(2, 9) : 
-                      mode === 'Sea' ? 'MSCU' + Math.random().toString().substr(2, 7) :
-                      'TRK-' + Math.random().toString().substr(2, 8);
-    
-    const newJob = {
-        no: generateJobNo(),
-        date: new Date().toISOString().split('T')[0],
-        customer: document.getElementById('customer').value,
-        route: `${document.getElementById('originPort').value} → ${document.getElementById('destinationPort').value}`,
-        container: containerNo,
-        mode: mode,
-        status: 'booking',
-        eta: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
-        shipper: `${document.getElementById('shipperName').value}, ${document.getElementById('shipperAddress').value}`,
-        consignee: `${document.getElementById('consigneeName').value}, ${document.getElementById('consigneeAddress').value}`,
-        cargo: `${document.getElementById('cargoDescription').value} - ${document.getElementById('weight').value} KG`
-    };
-    
-    jobsData.unshift(newJob);
-    loadJobsData();
-    closeModal();
-    alert('Job created successfully!');
-});
-
-function generateJobNo() {
-    const count = jobsData.length + 1;
-    return `JOB${count.toString().padStart(3, '0')}`;
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN');
 }
 
 function startAutoRefresh() {
@@ -278,15 +273,19 @@ function logout() {
     window.location.href = 'login.html';
 }
 
-// Close modals when clicking outside
-window.onclick = function(event) {
-    const addModal = document.getElementById('addJobModal');
-    const trackModal = document.getElementById('jobTrackingModal');
+// Mobile Sidebar Functions
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
     
-    if (event.target === addModal) {
-        closeModal();
-    }
-    if (event.target === trackModal) {
-        closeTrackingModal();
-    }
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+
+function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+    
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
 }
