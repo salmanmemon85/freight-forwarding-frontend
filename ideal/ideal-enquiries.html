@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enquiries - FreightW</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="bootstrap-fix.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>FreightW</h2>
+                <p>Ideal Freight Software</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="ideal-dashboard.html" class="nav-item">📊 Dashboard</a></li>
+                <li><a href="ideal-parties.html" class="nav-item">👥 Parties (CRM)</a></li>
+                <li><a href="ideal-enquiries.html" class="nav-item active">📞 Enquiries</a></li>
+                <li><a href="ideal-quotations.html" class="nav-item">💰 Quotations</a></li>
+                <li><a href="ideal-jobs.html" class="nav-item">💼 Jobs</a></li>
+                <li><a href="ideal-documents.html" class="nav-item">📄 Documents</a></li>
+                <li><a href="ideal-billing.html" class="nav-item">🧾 Billing</a></li>
+                <li><a href="ideal-payments.html" class="nav-item">💳 Payments</a></li>
+                <li><a href="ideal-outstanding.html" class="nav-item">⏰ Outstanding</a></li>
+                <li><a href="ideal-reports.html" class="nav-item">📈 Reports</a></li>
+            </ul>
+            <div class="user-info">
+                <p id="currentUser">Loading...</p>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>📞 Customer Enquiries</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="showAddEnquiry()">+ New Enquiry</button>
+                    <button class="btn-secondary" onclick="exportEnquiries()">📤 Export</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Today's Enquiries</h3>
+                    <div class="stat-number" id="todayEnquiries">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Response</h3>
+                    <div class="stat-number" id="pendingResponse">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Converted to Quote</h3>
+                    <div class="stat-number" id="convertedQuotes">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Success Rate</h3>
+                    <div class="stat-number" id="successRate">0%</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="filter-bar">
+                    <select id="statusFilter">
+                        <option value="all">All Status</option>
+                        <option value="new">New</option>
+                        <option value="pending">Pending</option>
+                        <option value="quoted">Quoted</option>
+                        <option value="converted">Converted</option>
+                        <option value="lost">Lost</option>
+                    </select>
+                    <input type="text" id="searchEnquiry" placeholder="Search by customer, route, cargo...">
+                    <button onclick="filterEnquiries()">🔍 Search</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Enquiry No</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Route</th>
+                                <th>Cargo Details</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="enquiriesTable">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Enquiry Modal -->
+    <div id="addEnquiryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>New Customer Enquiry</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="addEnquiryForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Customer Name</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Person</label>
+                        <input type="text" id="contactPerson" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Shipment Type</label>
+                        <select id="shipmentType" required>
+                            <option value="">Select Type</option>
+                            <option value="Export">Export</option>
+                            <option value="Import">Import</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Transport Mode</label>
+                        <select id="transportMode" required>
+                            <option value="">Select Mode</option>
+                            <option value="Sea">Sea Freight</option>
+                            <option value="Air">Air Freight</option>
+                            <option value="Road">Road Transport</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Origin Port</label>
+                        <input type="text" id="originPort" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination Port</label>
+                        <input type="text" id="destinationPort" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cargo Type</label>
+                        <select id="cargoType" required>
+                            <option value="">Select Type</option>
+                            <option value="General">General Cargo</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Textiles">Textiles</option>
+                            <option value="Machinery">Machinery</option>
+                            <option value="Chemicals">Chemicals</option>
+                            <option value="Food">Food Items</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Weight (KG)</label>
+                        <input type="number" id="weight" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>CBM</label>
+                        <input type="number" step="0.01" id="cbm">
+                    </div>
+                    <div class="form-group">
+                        <label>HS Code</label>
+                        <input type="text" id="hsCode">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Special Requirements</label>
+                    <textarea id="requirements" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()">Cancel</button>
+                    <button type="submit">Save Enquiry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="workflow-manager.js"></script>
+    <script src="ideal-enquiries.js"></script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outstanding - FreightW</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="bootstrap-fix.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>FreightW</h2>
+                <p>Ideal Freight Software</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="ideal-dashboard.html" class="nav-item">📊 Dashboard</a></li>
+                <li><a href="ideal-parties.html" class="nav-item">👥 Parties (CRM)</a></li>
+                <li><a href="ideal-enquiries.html" class="nav-item">📞 Enquiries</a></li>
+                <li><a href="ideal-quotations.html" class="nav-item">💰 Quotations</a></li>
+                <li><a href="ideal-jobs.html" class="nav-item">💼 Jobs</a></li>
+                <li><a href="ideal-documents.html" class="nav-item">📄 Documents</a></li>
+                <li><a href="ideal-billing.html" class="nav-item">🧾 Billing</a></li>
+                <li><a href="ideal-payments.html" class="nav-item">💳 Payments</a></li>
+                <li><a href="ideal-outstanding.html" class="nav-item active">⏰ Outstanding</a></li>
+                <li><a href="ideal-reports.html" class="nav-item">📈 Reports</a></li>
+            </ul>
+            <div class="user-info">
+                <p id="currentUser">Loading...</p>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>⏰ Outstanding Management</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="sendReminders()">📧 Send Reminders</button>
+                    <button class="btn-secondary" onclick="showAgingReport()">📊 Aging Report</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Outstanding</h3>
+                    <div class="stat-number" id="totalOutstanding">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Overdue (>30 days)</h3>
+                    <div class="stat-number" id="overdue30">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Critical (>60 days)</h3>
+                    <div class="stat-number" id="overdue60">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Customers</h3>
+                    <div class="stat-number" id="totalCustomers">0</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="filter-bar">
+                    <select id="agingFilter">
+                        <option value="all">All Outstanding</option>
+                        <option value="current">Current (0-30 days)</option>
+                        <option value="overdue30">Overdue (31-60 days)</option>
+                        <option value="overdue60">Critical (60+ days)</option>
+                    </select>
+                    <input type="text" id="searchOutstanding" placeholder="Search by customer, invoice...">
+                    <button onclick="filterOutstanding()">🔍 Search</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Invoice No</th>
+                                <th>Invoice Date</th>
+                                <th>Due Date</th>
+                                <th>Days Overdue</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="outstandingTable">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Aging Report Modal -->
+    <div id="agingReportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📊 Outstanding Aging Report</h3>
+                <span class="close" onclick="closeAgingModal()">&times;</span>
+            </div>
+            <div class="aging-report">
+                <div class="aging-summary">
+                    <div class="aging-bucket">
+                        <h4>Current (0-30 days)</h4>
+                        <div class="bucket-amount" id="bucket0to30">₹0</div>
+                        <div class="bucket-count" id="count0to30">0 invoices</div>
+                    </div>
+                    <div class="aging-bucket">
+                        <h4>31-60 days</h4>
+                        <div class="bucket-amount" id="bucket31to60">₹0</div>
+                        <div class="bucket-count" id="count31to60">0 invoices</div>
+                    </div>
+                    <div class="aging-bucket">
+                        <h4>61-90 days</h4>
+                        <div class="bucket-amount" id="bucket61to90">₹0</div>
+                        <div class="bucket-count" id="count61to90">0 invoices</div>
+                    </div>
+                    <div class="aging-bucket critical">
+                        <h4>90+ days</h4>
+                        <div class="bucket-amount" id="bucket90plus">₹0</div>
+                        <div class="bucket-count" id="count90plus">0 invoices</div>
+                    </div>
+                </div>
+                <div class="aging-actions">
+                    <button class="btn-primary" onclick="exportAging()">📤 Export Report</button>
+                    <button class="btn-secondary" onclick="printAging()">🖨️ Print Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="ideal-outstanding.js"></script>
+</body>
+</html>

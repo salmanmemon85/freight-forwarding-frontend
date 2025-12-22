@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents - FreightW</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="bootstrap-fix.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>FreightW</h2>
+                <p>Ideal Freight Software</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="ideal-dashboard.html" class="nav-item">📊 Dashboard</a></li>
+                <li><a href="ideal-parties.html" class="nav-item">👥 Parties (CRM)</a></li>
+                <li><a href="ideal-enquiries.html" class="nav-item">📞 Enquiries</a></li>
+                <li><a href="ideal-quotations.html" class="nav-item">💰 Quotations</a></li>
+                <li><a href="ideal-jobs.html" class="nav-item">💼 Jobs</a></li>
+                <li><a href="ideal-documents.html" class="nav-item active">📄 Documents</a></li>
+                <li><a href="ideal-billing.html" class="nav-item">🧾 Billing</a></li>
+                <li><a href="ideal-payments.html" class="nav-item">💳 Payments</a></li>
+                <li><a href="ideal-outstanding.html" class="nav-item">⏰ Outstanding</a></li>
+                <li><a href="ideal-reports.html" class="nav-item">📈 Reports</a></li>
+            </ul>
+            <div class="user-info">
+                <p id="currentUser">Loading...</p>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>📄 Document Management</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="showAddDocument()">+ Add Document</button>
+                    <button class="btn-secondary" onclick="generateBL()">📋 Generate B/L</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Pending Documents</h3>
+                    <div class="stat-number" id="pendingDocs">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>B/L Generated</h3>
+                    <div class="stat-number" id="blGenerated">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Customs Docs</h3>
+                    <div class="stat-number" id="customsDocs">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Completed</h3>
+                    <div class="stat-number" id="completedDocs">0</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="filter-bar">
+                    <select id="docTypeFilter">
+                        <option value="all">All Documents</option>
+                        <option value="invoice">Commercial Invoice</option>
+                        <option value="packing">Packing List</option>
+                        <option value="bl">Bill of Lading</option>
+                        <option value="awb">Air Waybill</option>
+                        <option value="certificate">Certificate of Origin</option>
+                        <option value="customs">Customs Declaration</option>
+                        <option value="insurance">Insurance Certificate</option>
+                    </select>
+                    <input type="text" id="searchDoc" placeholder="Search by job no, document type...">
+                    <button onclick="filterDocuments()">🔍 Search</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Doc No</th>
+                                <th>Job No</th>
+                                <th>Document Type</th>
+                                <th>Customer</th>
+                                <th>Created Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentsTable">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Document Modal -->
+    <div id="addDocumentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Document</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="addDocumentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Job Number</label>
+                        <select id="jobNumber" required>
+                            <option value="">Select Job</option>
+                            <option value="JOB001">JOB001 - ABC Industries</option>
+                            <option value="JOB002">JOB002 - XYZ Exports</option>
+                            <option value="JOB003">JOB003 - Global Trading</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Document Type</label>
+                        <select id="documentType" required>
+                            <option value="">Select Type</option>
+                            <option value="invoice">Commercial Invoice</option>
+                            <option value="packing">Packing List</option>
+                            <option value="bl">Bill of Lading</option>
+                            <option value="awb">Air Waybill</option>
+                            <option value="certificate">Certificate of Origin</option>
+                            <option value="customs">Customs Declaration</option>
+                            <option value="insurance">Insurance Certificate</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Document Title</label>
+                        <input type="text" id="documentTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Issue Date</label>
+                        <input type="date" id="issueDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <textarea id="remarks" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()">Cancel</button>
+                    <button type="submit">Create Document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="ideal-documents.js"></script>
+</body>
+</html>

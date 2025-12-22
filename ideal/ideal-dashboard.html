@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreightW - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="bootstrap-fix.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fas fa-truck"></i>
+                <h2>FreightW</h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="ideal-dashboard.html" class="nav-item active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="ideal-parties.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>CRM</span>
+                </a>
+                <a href="ideal-enquiries.html" class="nav-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Enquiries</span>
+                </a>
+                <a href="ideal-quotations.html" class="nav-item">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Quotations</span>
+                </a>
+                <a href="ideal-jobs.html" class="nav-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Jobs</span>
+                </a>
+                <a href="ideal-documents.html" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Documents</span>
+                </a>
+                <a href="ideal-billing.html" class="nav-item">
+                    <i class="fas fa-receipt"></i>
+                    <span>Billing</span>
+                </a>
+                <a href="ideal-payments.html" class="nav-item">
+                    <i class="fas fa-money-bill"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="ideal-outstanding.html" class="nav-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Outstanding</span>
+                </a>
+                <a href="ideal-reports.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reports</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <header class="header">
+                <h1>Dashboard (सबसे ज़रूरी)</h1>
+                <div class="user-info">
+                    <span id="currentUser">Admin - Karachi Branch</span>
+                    <button onclick="logout()" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Dashboard Stats - Auto Display Only -->
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
+                        <div class="stat-info">
+                            <h3 id="todayJobs">12</h3>
+                            <p>Today's Jobs</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="stat-info">
+                            <h3 id="pendingDocs">8</h3>
+                            <p>Pending Documents</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
+                        <div class="stat-info">
+                            <h3 id="pendingInvoices">₹2.5L</h3>
+                            <p>Pending Invoices</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-money-check"></i></div>
+                        <div class="stat-info">
+                            <h3 id="outstanding">₹8.9L</h3>
+                            <p>Outstanding Receivable</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-ship"></i></div>
+                        <div class="stat-info">
+                            <h3 id="shipmentStatus">45</h3>
+                            <p>Shipments in Transit</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="stat-info">
+                            <h3 id="monthlyProfit">₹12.3L</h3>
+                            <p>Monthly Profit</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button onclick="location.href='ideal-enquiries.html'" class="action-btn">
+                            <i class="fas fa-plus"></i>
+                            New Enquiry
+                        </button>
+                        <button onclick="location.href='ideal-quotations.html'" class="action-btn">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            Create Quote
+                        </button>
+                        <button onclick="location.href='ideal-jobs.html'" class="action-btn">
+                            <i class="fas fa-briefcase"></i>
+                            New Job
+                        </button>
+                        <button onclick="location.href='ideal-billing.html'" class="action-btn">
+                            <i class="fas fa-receipt"></i>
+                            Create Invoice
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="recent-activity">
+                    <h3>Recent Activity</h3>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>New enquiry ENQ045 created by Sales Team</span>
+                            <small>2 minutes ago</small>
+                        </div>
+                        <div class="activity-item">
+                            <i class="fas fa-file-invoice"></i>
+                            <span>Invoice INV123 generated for JOB034</span>
+                            <small>15 minutes ago</small>
+                        </div>
+                        <div class="activity-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Job JOB032 marked as completed</span>
+                            <small>1 hour ago</small>
+                        </div>
+                        <div class="activity-item">
+                            <i class="fas fa-money-bill"></i>
+                            <span>Payment received for INV120</span>
+                            <small>2 hours ago</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="ideal-dashboard.js"></script>
+</body>
+</html>

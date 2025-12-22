@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - FreightW</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="bootstrap-fix.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>FreightW</h2>
+                <p>Ideal Freight Software</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="ideal-dashboard.html" class="nav-item">📊 Dashboard</a></li>
+                <li><a href="ideal-parties.html" class="nav-item">👥 Parties (CRM)</a></li>
+                <li><a href="ideal-enquiries.html" class="nav-item">📞 Enquiries</a></li>
+                <li><a href="ideal-quotations.html" class="nav-item">💰 Quotations</a></li>
+                <li><a href="ideal-jobs.html" class="nav-item">💼 Jobs</a></li>
+                <li><a href="ideal-documents.html" class="nav-item">📄 Documents</a></li>
+                <li><a href="ideal-billing.html" class="nav-item">🧾 Billing</a></li>
+                <li><a href="ideal-payments.html" class="nav-item">💳 Payments</a></li>
+                <li><a href="ideal-outstanding.html" class="nav-item">⏰ Outstanding</a></li>
+                <li><a href="ideal-reports.html" class="nav-item active">📈 Reports</a></li>
+            </ul>
+            <div class="user-info">
+                <p id="currentUser">Loading...</p>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>📈 Business Reports</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="generateReport()">📊 Generate Report</button>
+                    <button class="btn-secondary" onclick="exportAllReports()">📤 Export All</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Monthly Revenue</h3>
+                    <div class="stat-number" id="monthlyRevenue">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Monthly Profit</h3>
+                    <div class="stat-number" id="monthlyProfit">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Profit Margin</h3>
+                    <div class="stat-number" id="profitMargin">0%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Customers</h3>
+                    <div class="stat-number" id="activeCustomers">0</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="reports-grid">
+                    <div class="report-card" onclick="showSalesReport()">
+                        <div class="report-icon">💰</div>
+                        <h3>Sales Report</h3>
+                        <p>Monthly sales analysis, customer-wise revenue, quotation conversion rates</p>
+                        <div class="report-stats">
+                            <span>This Month: ₹<span id="salesAmount">0</span></span>
+                        </div>
+                    </div>
+
+                    <div class="report-card" onclick="showProfitReport()">
+                        <div class="report-icon">📊</div>
+                        <h3>Profit Analysis</h3>
+                        <p>Job-wise profit margins, agent cost analysis, monthly profit trends</p>
+                        <div class="report-stats">
+                            <span>Avg Margin: <span id="avgMargin">0</span>%</span>
+                        </div>
+                    </div>
+
+                    <div class="report-card" onclick="showCustomerReport()">
+                        <div class="report-icon">👥</div>
+                        <h3>Customer Report</h3>
+                        <p>Top customers, payment behavior, outstanding analysis</p>
+                        <div class="report-stats">
+                            <span>Top Customer: <span id="topCustomer">-</span></span>
+                        </div>
+                    </div>
+
+                    <div class="report-card" onclick="showOperationsReport()">
+                        <div class="report-icon">🚢</div>
+                        <h3>Operations Report</h3>
+                        <p>Job completion rates, transit times, agent performance</p>
+                        <div class="report-stats">
+                            <span>Completed: <span id="completedJobs">0</span> jobs</span>
+                        </div>
+                    </div>
+
+                    <div class="report-card" onclick="showFinancialReport()">
+                        <div class="report-icon">💳</div>
+                        <h3>Financial Report</h3>
+                        <p>Cash flow, outstanding receivables, payment trends</p>
+                        <div class="report-stats">
+                            <span>Outstanding: ₹<span id="outstandingAmount">0</span></span>
+                        </div>
+                    </div>
+
+                    <div class="report-card" onclick="showGSTReport()">
+                        <div class="report-icon">🧾</div>
+                        <h3>GST Report</h3>
+                        <p>GST collected, monthly GST summary, tax compliance</p>
+                        <div class="report-stats">
+                            <span>This Month: ₹<span id="gstCollected">0</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Report Details Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3 id="reportTitle">Report Details</h3>
+                <span class="close" onclick="closeReportModal()">&times;</span>
+            </div>
+            <div class="report-content">
+                <div class="report-filters">
+                    <div class="filter-row">
+                        <div class="form-group">
+                            <label>From Date</label>
+                            <input type="date" id="fromDate">
+                        </div>
+                        <div class="form-group">
+                            <label>To Date</label>
+                            <input type="date" id="toDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Customer</label>
+                            <select id="customerFilter">
+                                <option value="all">All Customers</option>
+                                <option value="ABC Industries">ABC Industries</option>
+                                <option value="XYZ Exports">XYZ Exports</option>
+                                <option value="Global Trading">Global Trading</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" onclick="applyReportFilters()">Apply Filters</button>
+                    </div>
+                </div>
+                <div class="report-data" id="reportData">
+                    <!-- Report data will be loaded here -->
+                </div>
+                <div class="report-actions">
+                    <button class="btn-secondary" onclick="exportReport()">📤 Export</button>
+                    <button class="btn-secondary" onclick="printReport()">🖨️ Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="ideal-reports.js"></script>
+</body>
+</html>
