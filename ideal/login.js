@@ -43,7 +43,7 @@ function handleLogin(event) {
         }));
         
         // Redirect to dashboard
-        window.location.href = 'ideal-dashboard.html';
+        window.location.href = 'index.html';
     } else {
         alert('Invalid credentials. Please use demo users.');
     }

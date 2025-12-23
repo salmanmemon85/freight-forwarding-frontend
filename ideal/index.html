@@ -16,7 +16,7 @@
 
         <div class="main-content">
             <header class="header">
-                <h1>Dashboard (सबसे ज़रूरी)</h1>
+                <h1>Dashboard </h1>
                 <div class="user-info">
                     <span id="currentUser">Admin - Karachi Branch</span>
                     <button onclick="logout()" class="logout-btn">
@@ -133,5 +133,15 @@
     <script src="sidebar-manager.js"></script>
     <script src="workflow-manager.js"></script>
     <script src="ideal-dashboard.js"></script>
+    <script>
+        // Check user session on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(sessionStorage.getItem('currentUser'));
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+        });
+    </script>
 </body>
 </html>
