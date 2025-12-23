@@ -11,26 +11,7 @@
 <body>
     <div class="container-fluid">
         <nav class="sidebar">
-            <div class="logo">
-                <h2>FreightW</h2>
-                <p>Ideal Freight Software</p>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="ideal-dashboard.html" class="nav-item">📊 Dashboard</a></li>
-                <li><a href="ideal-parties.html" class="nav-item">👥 Parties (CRM)</a></li>
-                <li><a href="ideal-enquiries.html" class="nav-item">📞 Enquiries</a></li>
-                <li><a href="ideal-quotations.html" class="nav-item">💰 Quotations</a></li>
-                <li><a href="ideal-jobs.html" class="nav-item">💼 Jobs</a></li>
-                <li><a href="ideal-documents.html" class="nav-item">📄 Documents</a></li>
-                <li><a href="ideal-billing.html" class="nav-item active">🧾 Billing</a></li>
-                <li><a href="ideal-payments.html" class="nav-item">💳 Payments</a></li>
-                <li><a href="ideal-outstanding.html" class="nav-item">⏰ Outstanding</a></li>
-                <li><a href="ideal-reports.html" class="nav-item">📈 Reports</a></li>
-            </ul>
-            <div class="user-info">
-                <p id="currentUser">Loading...</p>
-                <button onclick="logout()" class="logout-btn">Logout</button>
-            </div>
+            <!-- Sidebar will be dynamically generated -->
         </nav>
 
         <main class="main-content">
@@ -108,44 +89,133 @@
             <form id="createInvoiceForm">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Customer</label>
-                        <input type="text" id="customer" readonly>
+                        <label>Invoice Type *</label>
+                        <select id="invoiceType" required onchange="updateBillingFields()">
+                            <option value="">Select Type</option>
+                            <option value="airline">✈️ Airline</option>
+                            <option value="shipping">🚢 Shipping</option>
+                            <option value="courier">📦 Courier</option>
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label>Job Number</label>
-                        <input type="text" id="jobNumber" readonly>
+                        <label>Customer</label>
+                        <input type="text" id="customer" readonly>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Invoice Date</label>
-                        <input type="date" id="invoiceDate" required>
+                        <label>Job Number</label>
+                        <input type="text" id="jobNumber" readonly>
                     </div>
                     <div class="form-group">
-                        <label>Due Date</label>
-                        <input type="date" id="dueDate">
+                        <label>Invoice Date</label>
+                        <input type="date" id="invoiceDate" required>
                     </div>
                 </div>
 
                 <div class="form-section">
                     <h4>Invoice Items</h4>
-                    <div class="invoice-items">
+                    
+                    <!-- Airline Fields -->
+                    <div id="airlineBillingFields" style="display: none;">
                         <div class="item-row">
                             <div class="form-group">
-                                <label>Description</label>
-                                <input type="text" id="item1Desc" placeholder="Freight charges" required>
+                                <label>Flight Number</label>
+                                <input type="text" id="flightNumber" placeholder="EK 123">
                             </div>
                             <div class="form-group">
-                                <label>Quantity</label>
-                                <input type="number" id="item1Qty" value="1" required>
+                                <label>Weight (kg)</label>
+                                <input type="number" id="weight" step="0.1" onchange="calculateBillingTotal()">
                             </div>
                             <div class="form-group">
-                                <label>Rate</label>
-                                <input type="number" id="item1Rate" step="0.01" required>
+                                <label>Rate per kg (₹)</label>
+                                <input type="number" id="ratePerKg" step="0.01" onchange="calculateBillingTotal()">
+                            </div>
+                        </div>
+                        <div class="item-row">
+                            <div class="form-group">
+                                <label>Fuel Surcharge (₹)</label>
+                                <input type="number" id="fuelSurcharge" step="0.01" value="0" onchange="calculateBillingTotal()">
                             </div>
                             <div class="form-group">
-                                <label>Amount</label>
-                                <input type="number" id="item1Amount" readonly>
+                                <label>Security Fee (₹)</label>
+                                <input type="number" id="securityFee" step="0.01" value="0" onchange="calculateBillingTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Route</label>
+                                <input type="text" id="route" placeholder="KHI-DXB">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Shipping Fields -->
+                    <div id="shippingBillingFields" style="display: none;">
+                        <div class="item-row">
+                            <div class="form-group">
+                                <label>Vessel Name</label>
+                                <input type="text" id="vesselName" placeholder="MV EXAMPLE">
+                            </div>
+                            <div class="form-group">
+                                <label>Container Qty</label>
+                                <input type="number" id="containerQty" min="1" onchange="calculateBillingTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Rate per Container (₹)</label>
+                                <input type="number" id="ratePerContainer" step="0.01" onchange="calculateBillingTotal()">
+                            </div>
+                        </div>
+                        <div class="item-row">
+                            <div class="form-group">
+                                <label>Port Charges (₹)</label>
+                                <input type="number" id="portCharges" step="0.01" value="0" onchange="calculateBillingTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Documentation (₹)</label>
+                                <input type="number" id="shippingDocs" step="0.01" value="0" onchange="calculateBillingTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Container Type</label>
+                                <select id="containerType">
+                                    <option value="20ft">20ft Container</option>
+                                    <option value="40ft">40ft Container</option>
+                                    <option value="40hc">40ft HC Container</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Courier Fields -->
+                    <div id="courierBillingFields" style="display: none;">
+                        <div class="item-row">
+                            <div class="form-group">
+                                <label>Service Type</label>
+                                <select id="serviceType">
+                                    <option value="express">Express</option>
+                                    <option value="standard">Standard</option>
+                                    <option value="economy">Economy</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Pieces</label>
+                                <input type="number" id="pieces" min="1" onchange="calculateBillingTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Rate per Piece (₹)</label>
+                                <input type="number" id="ratePerPiece" step="0.01" onchange="calculateBillingTotal()">
+                            </div>
+                        </div>
+                        <div class="item-row">
+                            <div class="form-group">
+                                <label>COD Charges (₹)</label>
+                                <input type="number" id="codCharges" step="0.01" value="0" onchange="calculateBillingTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Insurance (₹)</label>
+                                <input type="number" id="insurance" step="0.01" value="0" onchange="calculateBillingTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Destination</label>
+                                <input type="text" id="destination" placeholder="City/Country">
                             </div>
                         </div>
                     </div>
@@ -177,6 +247,7 @@
         </div>
     </div>
 
+    <script src="sidebar-manager.js"></script>
     <script src="workflow-manager.js"></script>
     <script src="ideal-billing.js"></script>
 </body>

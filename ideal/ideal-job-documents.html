@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Documents - FreightW</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="bootstrap-fix.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <nav class="sidebar">
+            <!-- Sidebar will be dynamically generated -->
+        </nav>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>📁 Job Documents Generator</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="generateDocument()">📄 Generate Document</button>
+                    <button class="btn-secondary" onclick="showTemplates()">📋 Templates</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>C&F Documents</h3>
+                    <div class="stat-number" id="cfDocuments">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Delivery Orders</h3>
+                    <div class="stat-number" id="deliveryOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Job Files</h3>
+                    <div class="stat-number" id="jobFiles">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Generated Today</h3>
+                    <div class="stat-number" id="generatedToday">0</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="filter-bar">
+                    <select id="documentTypeFilter">
+                        <option value="all">All Document Types</option>
+                        <option value="cf">C&F Documents</option>
+                        <option value="do">Delivery Order</option>
+                        <option value="job-file">Job File</option>
+                        <option value="invoice">Invoice</option>
+                        <option value="certificate">Certificate</option>
+                    </select>
+                    <input type="text" id="searchDocument" placeholder="Search by job, customer...">
+                    <button onclick="filterDocuments()">🔍 Search</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Document ID</th>
+                                <th>Job No</th>
+                                <th>Document Type</th>
+                                <th>Customer</th>
+                                <th>Generated Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobDocumentsTable">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="sidebar-manager.js"></script>
+    <script src="workflow-manager.js"></script>
+    <script src="enhanced-workflow.js"></script>
+    <script src="currency-manager.js"></script>
+    <script src="shipping-documents.js"></script>
+    <script src="ideal-job-documents.js"></script>
+</body>
+</html>

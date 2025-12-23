@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance - FreightW</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="bootstrap-fix.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <nav class="sidebar">
+            <!-- Sidebar will be dynamically generated -->
+        </nav>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>📅 Attendance Management</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="markAttendance()">✅ Mark Attendance</button>
+                    <button class="btn-secondary" onclick="showAttendanceReport()">📊 Monthly Report</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Present Today</h3>
+                    <div class="stat-number" id="presentToday">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Absent Today</h3>
+                    <div class="stat-number" id="absentToday">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Late Arrivals</h3>
+                    <div class="stat-number" id="lateArrivals">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg Attendance</h3>
+                    <div class="stat-number" id="avgAttendance">0%</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="filter-bar">
+                    <input type="date" id="attendanceDate" value="">
+                    <select id="branchFilter">
+                        <option value="all">All Branches</option>
+                        <option value="karachi">Karachi</option>
+                        <option value="lahore">Lahore</option>
+                        <option value="islamabad">Islamabad</option>
+                        <option value="faisalabad">Faisalabad</option>
+                    </select>
+                    <button onclick="filterAttendance()">🔍 Filter</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Role & Branch</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Hours</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTable">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mark Attendance Modal -->
+    <div id="attendanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Mark Attendance</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="attendanceForm">
+                <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Employee *</label>
+                            <select id="employeeSelect" required>
+                                <option value="">Select Employee</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" id="attendanceFormDate" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Check In Time</label>
+                            <input type="time" id="checkInTime">
+                        </div>
+                        <div class="form-group">
+                            <label>Check Out Time</label>
+                            <input type="time" id="checkOutTime">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Status *</label>
+                            <select id="attendanceStatus" required>
+                                <option value="present">Present</option>
+                                <option value="absent">Absent</option>
+                                <option value="late">Late</option>
+                                <option value="half-day">Half Day</option>
+                                <option value="leave">On Leave</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Remarks</label>
+                            <input type="text" id="attendanceRemarks" placeholder="Optional remarks">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()">Cancel</button>
+                    <button type="submit">Mark Attendance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="sidebar-manager.js"></script>
+    <script src="workflow-manager.js"></script>
+    <script src="enhanced-workflow.js"></script>
+    <script src="currency-manager.js"></script>
+    <script src="shipping-documents.js"></script>
+    <script src="ideal-users.js"></script>
+    <script src="ideal-attendance.js"></script>
+</body>
+</html>

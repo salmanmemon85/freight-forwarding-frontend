@@ -18,29 +18,10 @@
     <div class="mobile-overlay" onclick="closeSidebar()"></div>
     
     <div class="container-fluid">
-        <nav class="sidebar">
-            <div class="logo">
-                <h2>FreightW</h2>
-                <p>Ideal Freight Software</p>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="ideal-dashboard.html" class="nav-item">📊 Dashboard</a></li>
-                <li><a href="ideal-parties.html" class="nav-item">👥 Parties (CRM)</a></li>
-                <li><a href="ideal-enquiries.html" class="nav-item">📞 Enquiries</a></li>
-                <li><a href="ideal-quotations.html" class="nav-item">💰 Quotations</a></li>
-                <li><a href="ideal-jobs.html" class="nav-item active">💼 Jobs</a></li>
-                <li><a href="ideal-documents.html" class="nav-item">📄 Documents</a></li>
-                <li><a href="ideal-billing.html" class="nav-item">🧾 Billing</a></li>
-                <li><a href="ideal-payments.html" class="nav-item">💳 Payments</a></li>
-                <li><a href="ideal-outstanding.html" class="nav-item">⏰ Outstanding</a></li>
-                <li><a href="ideal-reports.html" class="nav-item">📈 Reports</a></li>
-            </ul>
-            <div class="user-info">
-                <p id="currentUser">Loading...</p>
-                <button onclick="logout()" class="logout-btn">Logout</button>
-            </div>
+       
+     <nav class="sidebar">
+            <!-- Sidebar will be dynamically generated -->
         </nav>
-
         <main class="main-content">
             <div class="header">
                 <h1>💼 Jobs Management</h1>
@@ -243,8 +224,10 @@
         </div>
     </div>
 
+    <script src="sidebar-manager.js"></script>
     <script src="workflow-manager.js"></script>
-    <script src="responsive-sidebar.js"></script>
-    <script src="ideal-jobs.js"></script>
+    <script src="enhanced-workflow.js"></script>
+    <script src="currency-manager.js"></script>
+    <script src="ideal-jobs-new.js"></script>
 </body>
 </html>

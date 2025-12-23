@@ -71,6 +71,123 @@ function setDefaultDates() {
     document.getElementById('toDate').value = today.toISOString().split('T')[0];
 }
 
+function showSalesPersonReport() {
+    const salesUsers = window.userManager ? window.userManager.getUsers().filter(u => u.role === 'sales') : [];
+    
+    let report = '👤 Sales Person Performance Report\n\n';
+    
+    if (salesUsers.length === 0) {
+        report += '❌ No sales persons found in the system.';
+    } else {
+        salesUsers.forEach(user => {
+            const commission = user.commission || { totalEarned: 0, pending: 0, rate: 0 };
+            report += `👤 ${user.name}:\n`;
+            report += `  • Commission Rate: ${commission.rate}%\n`;
+            report += `  • Total Earned: ₹${commission.totalEarned.toLocaleString('en-IN')}\n`;
+            report += `  • Pending: ₹${commission.pending.toLocaleString('en-IN')}\n`;
+            report += `  • Branch: ${user.branch}\n\n`;
+        });
+        
+        const topPerformer = salesUsers.reduce((top, user) => 
+            (user.commission?.totalEarned || 0) > (top.commission?.totalEarned || 0) ? user : top
+        );
+        
+        report += `🏆 Top Performer: ${topPerformer.name}\n`;
+        report += `💰 Total Commission: ₹${(topPerformer.commission?.totalEarned || 0).toLocaleString('en-IN')}`;
+    }
+    
+    showReportModal('Sales Person Report', report);
+}
+
+function showAgentReport() {
+    const jobs = window.workflowManager ? window.workflowManager.getJobs() : [];
+    
+    let report = '🌍 Overseas Agent Performance Report\n\n';
+    
+    // Group jobs by agent/route
+    const agentData = {};
+    jobs.forEach(job => {
+        const route = `${job.origin} - ${job.destination}`;
+        if (!agentData[route]) {
+            agentData[route] = {
+                jobs: 0,
+                revenue: 0,
+                cost: 0,
+                profit: 0
+            };
+        }
+        agentData[route].jobs++;
+        agentData[route].revenue += job.totalRevenue || 0;
+        agentData[route].cost += job.totalCost || 0;
+        agentData[route].profit += (job.totalRevenue || 0) - (job.totalCost || 0);
+    });
+    
+    if (Object.keys(agentData).length === 0) {
+        report += '❌ No agent data available.';
+    } else {
+        Object.keys(agentData).forEach(route => {
+            const data = agentData[route];
+            const margin = data.revenue > 0 ? ((data.profit / data.revenue) * 100).toFixed(1) : 0;
+            
+            report += `🗺️ ${route}:\n`;
+            report += `  • Jobs: ${data.jobs}\n`;
+            report += `  • Revenue: ₹${data.revenue.toLocaleString('en-IN')}\n`;
+            report += `  • Cost: ₹${data.cost.toLocaleString('en-IN')}\n`;
+            report += `  • Profit: ₹${data.profit.toLocaleString('en-IN')} (${margin}%)\n\n`;
+        });
+        
+        report += `📊 Total Active Routes: ${Object.keys(agentData).length}`;
+    }
+    
+    showReportModal('Agent Performance Report', report);
+}
+
+function showPayrollReport() {
+    const users = window.userManager ? window.userManager.getUsers().filter(u => u.status === 'active') : [];
+    
+    let report = '💵 Monthly Payroll Report\n\n';
+    
+    if (users.length === 0) {
+        report += '❌ No employee data available.';
+    } else {
+        let totalBasicSalary = 0;
+        let totalCommission = 0;
+        let totalPayroll = 0;
+        
+        report += '📋 Employee Breakdown:\n\n';
+        
+        users.forEach(user => {
+            const commission = user.commission ? user.commission.pending : 0;
+            const totalSalary = user.salary + commission;
+            
+            totalBasicSalary += user.salary;
+            totalCommission += commission;
+            totalPayroll += totalSalary;
+            
+            report += `👤 ${user.name} (${user.role}):\n`;
+            report += `  • Basic: ₹${user.salary.toLocaleString('en-IN')}\n`;
+            if (commission > 0) {
+                report += `  • Commission: ₹${commission.toLocaleString('en-IN')}\n`;
+            }
+            report += `  • Total: ₹${totalSalary.toLocaleString('en-IN')}\n\n`;
+        });
+        
+        report += '📊 Summary:\n';
+        report += `• Total Employees: ${users.length}\n`;
+        report += `• Basic Salaries: ₹${totalBasicSalary.toLocaleString('en-IN')}\n`;
+        report += `• Commissions: ₹${totalCommission.toLocaleString('en-IN')}\n`;
+        report += `• Total Payroll: ₹${totalPayroll.toLocaleString('en-IN')}`;
+    }
+    
+    showReportModal('Payroll Report', report);
+}
+
+function showReportModal(title, content) {
+    document.getElementById('reportTitle').textContent = title;
+    document.getElementById('reportData').innerHTML = `<pre style="white-space: pre-wrap; font-family: inherit;">${content}</pre>`;
+    document.getElementById('reportModal').style.display = 'block';
+}
+
 function showSalesReport() {
     const jobs = window.workflowManager.getJobs();
     const customerSales = {};

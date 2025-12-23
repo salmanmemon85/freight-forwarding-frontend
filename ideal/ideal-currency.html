@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Management - FreightW</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="bootstrap-fix.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <nav class="sidebar">
+            <!-- Sidebar will be dynamically generated -->
+        </nav>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>💱 Currency Management</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="updateRates()">🔄 Update Rates</button>
+                    <button class="btn-secondary" onclick="showAddCurrency()">+ Add Currency</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Base Currency</h3>
+                    <div class="stat-number">USD ($)</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Currencies</h3>
+                    <div class="stat-number" id="activeCurrencies">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Last Updated</h3>
+                    <div class="stat-number" id="lastUpdated">Today</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Auto Update</h3>
+                    <div class="stat-number">Enabled</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <!-- Currency Converter Widget -->
+                <div class="currency-converter">
+                    <h3>💱 Quick Currency Converter</h3>
+                    <div class="converter-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Amount</label>
+                                <input type="number" id="convertAmount" placeholder="Enter amount" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>From Currency</label>
+                                <select id="fromCurrency">
+                                    <!-- Options will be loaded by JS -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>To Currency</label>
+                                <select id="toCurrency">
+                                    <!-- Options will be loaded by JS -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button class="btn-primary" onclick="convertCurrency()">Convert</button>
+                            </div>
+                        </div>
+                        <div id="conversionResult" class="conversion-result"></div>
+                    </div>
+                </div>
+
+                <!-- Exchange Rates Table -->
+                <div class="rates-section">
+                    <h3>📈 Exchange Rates (Base: USD)</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Currency</th>
+                                    <th>Name</th>
+                                    <th>Symbol</th>
+                                    <th>Rate (1 USD =)</th>
+                                    <th>Reverse Rate</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="currencyTable">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Currency Modal -->
+    <div id="addCurrencyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Currency</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="addCurrencyForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Currency Code</label>
+                        <input type="text" id="currencyCode" placeholder="e.g., EUR" maxlength="3" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Currency Name</label>
+                        <input type="text" id="currencyName" placeholder="e.g., Euro" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Symbol</label>
+                        <input type="text" id="currencySymbol" placeholder="e.g., €" maxlength="3" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Exchange Rate (1 USD =)</label>
+                        <input type="number" id="exchangeRate" placeholder="e.g., 0.85" step="0.0001" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()">Cancel</button>
+                    <button type="submit">Add Currency</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Rate Modal -->
+    <div id="editRateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Exchange Rate</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editRateForm">
+                <div class="form-group">
+                    <label>Currency</label>
+                    <input type="text" id="editCurrencyCode" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Current Rate (1 USD =)</label>
+                    <input type="number" id="currentRate" step="0.0001" required>
+                </div>
+                <div class="form-group">
+                    <label>New Rate (1 USD =)</label>
+                    <input type="number" id="newRate" step="0.0001" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit">Update Rate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="sidebar-manager.js"></script>
+    
+    <script src="workflow-manager.js"></script>
+    <script src="enhanced-workflow.js"></script>
+    <script src="currency-manager.js"></script>
+    <script src="ideal-currency.js"></script>
+
+</body>
+</html>

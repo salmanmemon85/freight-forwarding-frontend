@@ -132,6 +132,63 @@ function showCreateInvoiceForJob(jobNo) {
     alert(`🧾 Creating invoice for ${jobNo}\n\n📋 Job Details:\nCustomer: ${job.customer}\nRoute: ${job.origin} → ${job.destination}\nCBM: ${job.cbm}\nRate: $${job.customerRate}/CBM`);
 }
 
+function updateBillingFields() {
+    const invoiceType = document.getElementById('invoiceType').value;
+    
+    // Hide all fields first
+    document.getElementById('airlineBillingFields').style.display = 'none';
+    document.getElementById('shippingBillingFields').style.display = 'none';
+    document.getElementById('courierBillingFields').style.display = 'none';
+    
+    // Show relevant fields
+    if (invoiceType === 'airline') {
+        document.getElementById('airlineBillingFields').style.display = 'block';
+    } else if (invoiceType === 'shipping') {
+        document.getElementById('shippingBillingFields').style.display = 'block';
+    } else if (invoiceType === 'courier') {
+        document.getElementById('courierBillingFields').style.display = 'block';
+    }
+    
+    calculateBillingTotal();
+}
+
+function calculateBillingTotal() {
+    const invoiceType = document.getElementById('invoiceType').value;
+    let subtotal = 0;
+    let typeSpecificCharges = 0;
+    
+    if (invoiceType === 'airline') {
+        const weight = parseFloat(document.getElementById('weight').value) || 0;
+        const rate = parseFloat(document.getElementById('ratePerKg').value) || 0;
+        const fuel = parseFloat(document.getElementById('fuelSurcharge').value) || 0;
+        const security = parseFloat(document.getElementById('securityFee').value) || 0;
+        subtotal = weight * rate;
+        typeSpecificCharges = fuel + security;
+    } else if (invoiceType === 'shipping') {
+        const qty = parseFloat(document.getElementById('containerQty').value) || 0;
+        const rate = parseFloat(document.getElementById('ratePerContainer').value) || 0;
+        const port = parseFloat(document.getElementById('portCharges').value) || 0;
+        const docs = parseFloat(document.getElementById('shippingDocs').value) || 0;
+        subtotal = qty * rate;
+        typeSpecificCharges = port + docs;
+    } else if (invoiceType === 'courier') {
+        const pieces = parseFloat(document.getElementById('pieces').value) || 0;
+        const rate = parseFloat(document.getElementById('ratePerPiece').value) || 0;
+        const cod = parseFloat(document.getElementById('codCharges').value) || 0;
+        const insurance = parseFloat(document.getElementById('insurance').value) || 0;
+        subtotal = pieces * rate;
+        typeSpecificCharges = cod + insurance;
+    }
+    
+    const netAmount = subtotal + typeSpecificCharges;
+    const gst = netAmount * 0.18; // 18% GST
+    const total = netAmount + gst;
+    
+    document.getElementById('subtotal').textContent = '₹' + netAmount.toFixed(2);
+    document.getElementById('gstAmount').textContent = '₹' + gst.toFixed(2);
+    document.getElementById('totalAmount').textContent = '₹' + total.toFixed(2);
+}
+
 function showCreateInvoice() {
     document.getElementById('createInvoiceModal').style.display = 'block';
     document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];

@@ -1,0 +1,134 @@
+{
+  "logo": {
+    "title": "FreightW",
+    "subtitle": "Ideal Freight Software"
+  },
+  "menuItems": [
+    {
+      "id": "dashboard",
+      "icon": "📊",
+      "label": "Dashboard",
+      "url": "ideal-dashboard.html",
+      "roles": ["admin", "manager", "sales", "operations", "accounts"]
+    },
+    {
+      "id": "parties",
+      "icon": "👥",
+      "label": "Parties (CRM)",
+      "url": "ideal-parties.html",
+      "roles": ["admin", "manager", "sales", "operations"]
+    },
+    {
+      "id": "enquiries",
+      "icon": "📞",
+      "label": "Enquiries",
+      "url": "ideal-enquiries.html",
+      "roles": ["admin", "manager", "sales"]
+    },
+    {
+      "id": "quotations",
+      "icon": "💰",
+      "label": "Quotations",
+      "url": "ideal-quotations.html",
+      "roles": ["admin", "manager", "sales"]
+    },
+    {
+      "id": "jobs",
+      "icon": "💼",
+      "label": "Jobs",
+      "url": "ideal-jobs.html",
+      "roles": ["admin", "manager", "sales", "operations"]
+    },
+    {
+      "id": "documents",
+      "icon": "📄",
+      "label": "Documents Upload",
+      "url": "ideal-documents.html",
+      "roles": ["admin", "manager", "operations"]
+    },
+    {
+      "id": "arrival-notices",
+      "icon": "📋",
+      "label": "Arrival Notices",
+      "url": "ideal-arrival-notices.html",
+      "roles": ["admin", "manager", "operations"]
+    },
+    {
+      "id": "job-documents",
+      "icon": "📁",
+      "label": "Job Documents",
+      "url": "ideal-job-documents.html",
+      "roles": ["admin", "manager", "operations"]
+    },
+    {
+      "id": "purchase-orders",
+      "icon": "🛒",
+      "label": "Purchase Orders",
+      "url": "ideal-purchase-orders.html",
+      "roles": ["admin", "manager", "accounts"]
+    },
+    {
+      "id": "billing",
+      "icon": "🧾",
+      "label": "Billing",
+      "url": "ideal-billing.html",
+      "roles": ["admin", "manager", "accounts"]
+    },
+    {
+      "id": "payments",
+      "icon": "💳",
+      "label": "Payments",
+      "url": "ideal-payments.html",
+      "roles": ["admin", "manager", "accounts"]
+    },
+    {
+      "id": "outstanding",
+      "icon": "⏰",
+      "label": "Outstanding",
+      "url": "ideal-outstanding.html",
+      "roles": ["admin", "manager", "accounts"]
+    },
+    {
+      "id": "currency",
+      "icon": "💱",
+      "label": "Currency",
+      "url": "ideal-currency.html",
+      "roles": ["admin", "manager", "accounts"]
+    },
+    {
+      "id": "accounts",
+      "icon": "🧮",
+      "label": "Accounts",
+      "url": "accounts.html",
+      "roles": ["admin", "manager", "accounts"]
+    },
+    {
+      "id": "users",
+      "icon": "👤",
+      "label": "Users",
+      "url": "ideal-users.html",
+      "roles": ["admin", "manager"]
+    },
+    {
+      "id": "attendance",
+      "icon": "📅",
+      "label": "Attendance",
+      "url": "ideal-attendance.html",
+      "roles": ["admin", "manager"]
+    },
+    {
+      "id": "payroll",
+      "icon": "💰",
+      "label": "Payroll",
+      "url": "ideal-payroll.html",
+      "roles": ["admin", "manager", "accounts"]
+    },
+    {
+      "id": "reports",
+      "icon": "📈",
+      "label": "Reports",
+      "url": "ideal-reports.html",
+      "roles": ["admin", "manager", "accounts"]
+    }
+  ]
+}

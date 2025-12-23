@@ -85,14 +85,30 @@ function displayDocuments(jobs) {
 }
 
 function getDocumentStatus(job) {
-    const requiredDocs = ['mbl', 'hbl', 'invoice', 'packingList', 'shippingBill', 'formE'];
+    if (!window.documentsManager) {
+        // Fallback to old system
+        const requiredDocs = ['mbl', 'hbl', 'invoice', 'packingList', 'shippingBill', 'formE'];
+        const receivedDocs = job.documents ? Object.keys(job.documents).filter(doc => job.documents[doc]) : [];
+        
+        return {
+            total: requiredDocs.length,
+            received: receivedDocs.length,
+            pending: requiredDocs.length - receivedDocs.length,
+            status: receivedDocs.length === requiredDocs.length ? 'complete' : 
+                    receivedDocs.length > 0 ? 'partial' : 'pending'
+        };
+    }
+    
+    // New enhanced system
+    const allDocs = window.documentsManager.getAllDocuments();
+    const requiredDocs = allDocs.filter(doc => doc.required);
     const receivedDocs = job.documents ? Object.keys(job.documents).filter(doc => job.documents[doc]) : [];
     
     return {
         total: requiredDocs.length,
         received: receivedDocs.length,
         pending: requiredDocs.length - receivedDocs.length,
-        status: receivedDocs.length === requiredDocs.length ? 'complete' : 
+        status: receivedDocs.length >= requiredDocs.length ? 'complete' : 
                 receivedDocs.length > 0 ? 'partial' : 'pending'
     };
 }
@@ -184,21 +200,28 @@ function viewDocuments(jobNo) {
     if (!job) return;
     
     const docs = job.documents || {};
+    const docManager = window.documentsManager;
     
     let docList = `📄 Documents Status - ${jobNo}\n\n`;
     docList += `👤 Customer: ${job.customer}\n`;
     docList += `🚚 Route: ${job.origin} → ${job.destination}\n\n`;
     
-    docList += `📋 Document Checklist:\n`;
-    docList += `${docs.mbl ? '✅' : '❌'} MBL/MAWB\n`;
-    docList += `${docs.hbl ? '✅' : '❌'} HBL/HAWB\n`;
-    docList += `${docs.invoice ? '✅' : '❌'} Shipper Invoice\n`;
-    docList += `${docs.packingList ? '✅' : '❌'} Packing List\n`;
-    docList += `${docs.shippingBill ? '✅' : '❌'} Shipping Bill\n`;
-    docList += `${docs.formE ? '✅' : '❌'} Form E (if required)\n`;
+    // Show documents by category
+    const categories = docManager.getDocumentCategories();
     
-    const docStatus = getDocumentStatus(job);
-    docList += `\n📊 Status: ${docStatus.received}/${docStatus.total} received`;
+    categories.forEach(category => {
+        docList += `\n${category.icon} ${category.name.toUpperCase()}:\n`;
+        const categoryDocs = docManager.getDocumentsByCategory(category.key);
+        
+        categoryDocs.forEach(doc => {
+            const status = docs[doc.key] ? '✅' : '❌';
+            docList += `${status} ${doc.name}\n`;
+        });
+    });
+    
+    const allDocs = docManager.getAllDocuments();
+    const receivedCount = allDocs.filter(doc => docs[doc.key]).length;
+    docList += `\n📊 Status: ${receivedCount}/${allDocs.length} documents received`;
     
     alert(docList);
 }
@@ -233,8 +256,28 @@ function closeModal() {
     delete document.getElementById('addDocumentForm').dataset.jobNo;
 }
 
+function showDocumentCategories() {
+    if (!window.documentsManager) {
+        alert('Document manager not loaded!');
+        return;
+    }
+    
+    const summary = window.documentsManager.getDocumentsSummary();
+    let categoryList = '📄 SHIPPING DOCUMENTS - COMPLETE GUIDE\n\n';
+    
+    summary.forEach((cat, index) => {
+        categoryList += `${index + 1}️⃣ ${cat.icon} ${cat.name.toUpperCase()}\n`;
+        categoryList += `${cat.description || ''}\n`;
+        categoryList += `Total: ${cat.totalDocs} docs | Required: ${cat.requiredDocs}\n\n`;
+    });
+    
+    categoryList += '👉 Use "View" button on any job to see detailed document checklist';
+    
+    alert(categoryList);
+}
+
 function generateBL() {
-    alert('B/L Generation:\n\n1. Select Job\n2. Enter vessel details\n3. Add cargo information\n4. Generate PDF\n\nFull B/L generator - Coming Soon!');
+    showDocumentCategories();
 }
 
 // Form submission for document upload
