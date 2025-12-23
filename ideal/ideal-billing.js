@@ -28,6 +28,12 @@ function checkJobForInvoice() {
 }
 
 function loadBillingData() {
+    // Wait for workflow manager to be available
+    if (!window.workflowManager) {
+        setTimeout(loadBillingData, 100);
+        return;
+    }
+    
     // Get invoices from workflow manager
     const invoices = window.workflowManager.getInvoices();
     
@@ -76,7 +82,9 @@ function displayInvoices(invoices) {
                 <td><span class="status-${statusClass}">${invoice.status.toUpperCase()}</span></td>
                 <td>
                     <button class="btn-small" onclick="viewInvoice('${invoice.no}')">👁️ View</button>
-                    <button class="btn-small btn-primary" onclick="${nextAction.action}('${invoice.no}')">${nextAction.label}</button>
+                    <button class="btn-small" onclick="editInvoice('${invoice.no}')">✏️ Edit</button>
+                    <button class="btn-small btn-warning" onclick="createCreditNote('${invoice.no}')">📝 Credit</button>
+                    <button class="btn-small btn-info" onclick="createDebitNote('${invoice.no}')">📈 Debit</button>
                 </td>
             </tr>
         `;
@@ -112,81 +120,134 @@ function showCreateInvoiceForJob(jobNo) {
     console.log('Creating invoice for job:', job);
     
     // Pre-fill form with job data
-    document.getElementById('customer').value = job.customer;
-    document.getElementById('jobNumber').value = job.no;
-    document.getElementById('item1Desc').value = 'Freight Charges - ' + job.origin + ' to ' + job.destination;
-    document.getElementById('item1Qty').value = job.cbm || 1;
-    document.getElementById('item1Rate').value = job.customerRate || 100;
+    const customerEl = document.getElementById('customer');
+    const jobNumberEl = document.getElementById('jobNumber');
+    
+    if (customerEl) customerEl.value = job.customer;
+    if (jobNumberEl) jobNumberEl.value = job.no;
     
     // Store job reference
     document.getElementById('createInvoiceForm').dataset.jobNo = jobNo;
     
     showCreateInvoice();
     
-    // Trigger calculation after form is shown
-    setTimeout(() => {
-        const event = new Event('input');
-        document.getElementById('item1Qty').dispatchEvent(event);
-    }, 100);
-    
     alert(`🧾 Creating invoice for ${jobNo}\n\n📋 Job Details:\nCustomer: ${job.customer}\nRoute: ${job.origin} → ${job.destination}\nCBM: ${job.cbm}\nRate: $${job.customerRate}/CBM`);
 }
 
 function updateBillingFields() {
-    const invoiceType = document.getElementById('invoiceType').value;
+    const invoiceType = document.getElementById('invoiceType')?.value;
     
     // Hide all fields first
-    document.getElementById('airlineBillingFields').style.display = 'none';
-    document.getElementById('shippingBillingFields').style.display = 'none';
-    document.getElementById('courierBillingFields').style.display = 'none';
+    const airlineFields = document.getElementById('airlineBillingFields');
+    const shippingFields = document.getElementById('shippingBillingFields');
+    const courierFields = document.getElementById('courierBillingFields');
+    
+    if (airlineFields) airlineFields.style.display = 'none';
+    if (shippingFields) shippingFields.style.display = 'none';
+    if (courierFields) courierFields.style.display = 'none';
     
     // Show relevant fields
-    if (invoiceType === 'airline') {
-        document.getElementById('airlineBillingFields').style.display = 'block';
-    } else if (invoiceType === 'shipping') {
-        document.getElementById('shippingBillingFields').style.display = 'block';
-    } else if (invoiceType === 'courier') {
-        document.getElementById('courierBillingFields').style.display = 'block';
+    if (invoiceType === 'airline' && airlineFields) {
+        airlineFields.style.display = 'block';
+    } else if (invoiceType === 'shipping' && shippingFields) {
+        shippingFields.style.display = 'block';
+    } else if (invoiceType === 'courier' && courierFields) {
+        courierFields.style.display = 'block';
     }
+    
+    updateInvoiceCurrency();
+    calculateBillingTotal();
+}
+
+// Currency exchange rates for billing
+const billingExchangeRates = {
+    PKR: 1,
+    USD: 280,
+    EUR: 305,
+    GBP: 355,
+    AED: 76,
+    SAR: 75
+};
+
+function updateInvoiceCurrency() {
+    const currency = document.getElementById('invoiceCurrency')?.value || 'PKR';
+    const symbols = {
+        PKR: '₹',
+        USD: '$',
+        EUR: '€',
+        GBP: '£',
+        AED: 'AED',
+        SAR: 'SAR'
+    };
+    
+    const symbol = symbols[currency] || '₹';
+    const currencySymbol1 = document.getElementById('invoiceCurrencySymbol');
+    const currencySymbol2 = document.getElementById('invoiceCurrencySymbol2');
+    
+    if (currencySymbol1) currencySymbol1.textContent = symbol;
+    if (currencySymbol2) currencySymbol2.textContent = symbol;
+    
+    // Update exchange rate
+    const rate = billingExchangeRates[currency] || 1;
+    const exchangeRateEl = document.getElementById('invoiceExchangeRate');
+    if (exchangeRateEl) exchangeRateEl.value = rate;
     
     calculateBillingTotal();
 }
 
+function calculateTotal() {
+    const amount = parseFloat(document.getElementById('invoiceAmount')?.value) || 0;
+    const gst = amount * 0.18;
+    const total = amount + gst;
+    
+    const subtotalEl = document.getElementById('subtotal');
+    const gstEl = document.getElementById('gstAmount');
+    const totalEl = document.getElementById('totalAmount');
+    
+    if (subtotalEl) subtotalEl.textContent = '₹' + amount.toFixed(2);
+    if (gstEl) gstEl.textContent = '₹' + gst.toFixed(2);
+    if (totalEl) totalEl.textContent = '₹' + total.toFixed(2);
+}
+
 function calculateBillingTotal() {
-    const invoiceType = document.getElementById('invoiceType').value;
+    const invoiceType = document.getElementById('invoiceType')?.value;
+    const taxRate = parseFloat(document.getElementById('invoiceTaxRate')?.value) || 18;
+    const exchangeRate = parseFloat(document.getElementById('invoiceExchangeRate')?.value) || 1;
     let subtotal = 0;
-    let typeSpecificCharges = 0;
     
     if (invoiceType === 'airline') {
-        const weight = parseFloat(document.getElementById('weight').value) || 0;
-        const rate = parseFloat(document.getElementById('ratePerKg').value) || 0;
-        const fuel = parseFloat(document.getElementById('fuelSurcharge').value) || 0;
-        const security = parseFloat(document.getElementById('securityFee').value) || 0;
-        subtotal = weight * rate;
-        typeSpecificCharges = fuel + security;
+        const weight = parseFloat(document.getElementById('weight')?.value) || 0;
+        const rate = parseFloat(document.getElementById('ratePerKg')?.value) || 0;
+        const fuel = parseFloat(document.getElementById('fuelSurcharge')?.value) || 0;
+        const security = parseFloat(document.getElementById('securityFee')?.value) || 0;
+        subtotal = (weight * rate) + fuel + security;
     } else if (invoiceType === 'shipping') {
-        const qty = parseFloat(document.getElementById('containerQty').value) || 0;
-        const rate = parseFloat(document.getElementById('ratePerContainer').value) || 0;
-        const port = parseFloat(document.getElementById('portCharges').value) || 0;
-        const docs = parseFloat(document.getElementById('shippingDocs').value) || 0;
-        subtotal = qty * rate;
-        typeSpecificCharges = port + docs;
+        const qty = parseFloat(document.getElementById('containerQty')?.value) || 0;
+        const rate = parseFloat(document.getElementById('ratePerContainer')?.value) || 0;
+        const port = parseFloat(document.getElementById('portCharges')?.value) || 0;
+        const docs = parseFloat(document.getElementById('shippingDocs')?.value) || 0;
+        subtotal = (qty * rate) + port + docs;
     } else if (invoiceType === 'courier') {
-        const pieces = parseFloat(document.getElementById('pieces').value) || 0;
-        const rate = parseFloat(document.getElementById('ratePerPiece').value) || 0;
-        const cod = parseFloat(document.getElementById('codCharges').value) || 0;
-        const insurance = parseFloat(document.getElementById('insurance').value) || 0;
-        subtotal = pieces * rate;
-        typeSpecificCharges = cod + insurance;
+        const weight = parseFloat(document.getElementById('courierWeight')?.value) || 0;
+        const rate = parseFloat(document.getElementById('courierRate')?.value) || 0;
+        subtotal = weight * rate;
     }
     
-    const netAmount = subtotal + typeSpecificCharges;
-    const gst = netAmount * 0.18; // 18% GST
-    const total = netAmount + gst;
+    const tax = subtotal * (taxRate / 100);
+    const total = subtotal + tax;
+    const pkrTotal = total * exchangeRate;
     
-    document.getElementById('subtotal').textContent = '₹' + netAmount.toFixed(2);
-    document.getElementById('gstAmount').textContent = '₹' + gst.toFixed(2);
-    document.getElementById('totalAmount').textContent = '₹' + total.toFixed(2);
+    const subtotalEl = document.getElementById('subtotal');
+    const gstEl = document.getElementById('gstAmount');
+    const totalEl = document.getElementById('totalAmount');
+    const pkrTotalEl = document.getElementById('pkrTotal');
+    const taxPercentEl = document.getElementById('invoiceTaxPercent');
+    
+    if (subtotalEl) subtotalEl.textContent = subtotal.toFixed(2);
+    if (gstEl) gstEl.textContent = tax.toFixed(2);
+    if (totalEl) totalEl.textContent = total.toFixed(2);
+    if (pkrTotalEl) pkrTotalEl.textContent = '₹' + pkrTotal.toLocaleString('en-IN', {maximumFractionDigits: 2});
+    if (taxPercentEl) taxPercentEl.textContent = `(${taxRate}%)`;
 }
 
 function showCreateInvoice() {
@@ -199,6 +260,12 @@ function setupInvoiceCalculation() {
     const rateInput = document.getElementById('item1Rate');
     const amountInput = document.getElementById('item1Amount');
     
+    // Check if elements exist before adding event listeners
+    if (!qtyInput || !rateInput || !amountInput) {
+        console.log('Invoice calculation elements not found, skipping setup');
+        return;
+    }
+    
     function calculateInvoice() {
         const qty = parseFloat(qtyInput.value) || 0;
         const rate = parseFloat(rateInput.value) || 0;
@@ -209,9 +276,13 @@ function setupInvoiceCalculation() {
         const gst = amount * 0.18;
         const total = amount + gst;
         
-        document.getElementById('subtotal').textContent = '$' + amount.toFixed(2);
-        document.getElementById('gstAmount').textContent = '$' + gst.toFixed(2);
-        document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+        const subtotalEl = document.getElementById('subtotal');
+        const gstEl = document.getElementById('gstAmount');
+        const totalEl = document.getElementById('totalAmount');
+        
+        if (subtotalEl) subtotalEl.textContent = '$' + amount.toFixed(2);
+        if (gstEl) gstEl.textContent = '$' + gst.toFixed(2);
+        if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
     }
     
     qtyInput.addEventListener('input', calculateInvoice);
@@ -349,6 +420,149 @@ function logout() {
     sessionStorage.removeItem('currentUser');
     window.location.href = 'login.html';
 }
+
+// Credit/Debit Note Functions
+function createCreditNote(invoiceNo) {
+    const invoice = window.workflowManager.getInvoices().find(i => i.no === invoiceNo);
+    if (!invoice) return;
+    
+    document.getElementById('noteModalTitle').textContent = 'Create Credit Note';
+    document.getElementById('createNoteBtn').textContent = 'Create Credit Note';
+    document.getElementById('originalInvoiceId').value = invoiceNo;
+    document.getElementById('originalInvoiceNo').value = invoiceNo;
+    document.getElementById('originalAmount').value = '₹' + Math.round((invoice.total || 0) * 80).toLocaleString('en-IN');
+    document.getElementById('noteType').value = 'credit';
+    document.getElementById('noteDate').value = new Date().toISOString().split('T')[0];
+    
+    document.getElementById('creditDebitModal').style.display = 'block';
+}
+
+function createDebitNote(invoiceNo) {
+    const invoice = window.workflowManager.getInvoices().find(i => i.no === invoiceNo);
+    if (!invoice) return;
+    
+    document.getElementById('noteModalTitle').textContent = 'Create Debit Note';
+    document.getElementById('createNoteBtn').textContent = 'Create Debit Note';
+    document.getElementById('originalInvoiceId').value = invoiceNo;
+    document.getElementById('originalInvoiceNo').value = invoiceNo;
+    document.getElementById('originalAmount').value = '₹' + Math.round((invoice.total || 0) * 80).toLocaleString('en-IN');
+    document.getElementById('noteType').value = 'debit';
+    document.getElementById('noteDate').value = new Date().toISOString().split('T')[0];
+    
+    document.getElementById('creditDebitModal').style.display = 'block';
+}
+
+function calculateNoteTotal() {
+    const adjustmentAmount = parseFloat(document.getElementById('adjustmentAmount').value) || 0;
+    const originalAmount = parseFloat(document.getElementById('originalAmount').value.replace('₹', '').replace(/,/g, '')) || 0;
+    const noteType = document.getElementById('noteType').value;
+    
+    const gst = adjustmentAmount * 0.18;
+    const totalAdjustment = adjustmentAmount + gst;
+    
+    let newAmount;
+    if (noteType === 'credit') {
+        newAmount = originalAmount - totalAdjustment;
+    } else {
+        newAmount = originalAmount + totalAdjustment;
+    }
+    
+    document.getElementById('adjustmentGST').value = gst.toFixed(2);
+    document.getElementById('totalAdjustment').value = totalAdjustment.toFixed(2);
+    document.getElementById('newInvoiceAmount').value = newAmount.toFixed(2);
+}
+
+function closeCreditDebitModal() {
+    document.getElementById('creditDebitModal').style.display = 'none';
+    document.getElementById('creditDebitForm').reset();
+}
+
+// Edit Invoice Functions
+function editInvoice(invoiceNo) {
+    const invoice = window.workflowManager.getInvoices().find(i => i.no === invoiceNo);
+    if (!invoice) return;
+    
+    document.getElementById('editInvoiceId').value = invoiceNo;
+    document.getElementById('editInvoiceNo').value = invoiceNo;
+    document.getElementById('editCustomer').value = invoice.customer;
+    document.getElementById('editJobNumber').value = invoice.jobNo;
+    document.getElementById('editInvoiceDate').value = invoice.date;
+    document.getElementById('editAmount').value = Math.round((invoice.total || 0) * 80 / 1.18).toFixed(2);
+    document.getElementById('editStatus').value = invoice.status;
+    document.getElementById('editNotes').value = invoice.notes || '';
+    
+    calculateEditTotal();
+    document.getElementById('editInvoiceModal').style.display = 'block';
+}
+
+function calculateEditTotal() {
+    const amount = parseFloat(document.getElementById('editAmount').value) || 0;
+    const gst = amount * 0.18;
+    const total = amount + gst;
+    
+    document.getElementById('editGST').value = gst.toFixed(2);
+    document.getElementById('editTotal').value = total.toFixed(2);
+}
+
+function closeEditModal() {
+    document.getElementById('editInvoiceModal').style.display = 'none';
+    document.getElementById('editInvoiceForm').reset();
+}
+
+// Form Submissions
+document.getElementById('creditDebitForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const noteType = document.getElementById('noteType').value;
+    const invoiceNo = document.getElementById('originalInvoiceId').value;
+    const adjustmentAmount = parseFloat(document.getElementById('adjustmentAmount').value);
+    const reason = document.getElementById('adjustmentReason').value;
+    const description = document.getElementById('adjustmentDescription').value;
+    const newAmount = parseFloat(document.getElementById('newInvoiceAmount').value);
+    
+    const noteNo = (noteType === 'credit' ? 'CN' : 'DN') + Date.now().toString().slice(-6);
+    
+    // Update original invoice amount
+    const invoice = window.workflowManager.getInvoices().find(i => i.no === invoiceNo);
+    if (invoice) {
+        invoice.total = newAmount / 80; // Convert back to USD
+        invoice.tax = (newAmount / 80) * 0.18;
+    }
+    
+    alert(`✅ ${noteType === 'credit' ? 'Credit' : 'Debit'} Note Created!\n\n📋 Note: ${noteNo}\n📄 Original Invoice: ${invoiceNo}\n💰 Adjustment: ₹${adjustmentAmount.toLocaleString('en-IN')}\n💵 New Amount: ₹${newAmount.toLocaleString('en-IN')}\n📝 Reason: ${reason}`);
+    
+    loadBillingData();
+    closeCreditDebitModal();
+});
+
+document.getElementById('editInvoiceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const invoiceNo = document.getElementById('editInvoiceId').value;
+    const customer = document.getElementById('editCustomer').value;
+    const jobNumber = document.getElementById('editJobNumber').value;
+    const date = document.getElementById('editInvoiceDate').value;
+    const amount = parseFloat(document.getElementById('editAmount').value);
+    const status = document.getElementById('editStatus').value;
+    const notes = document.getElementById('editNotes').value;
+    
+    // Update invoice
+    const invoice = window.workflowManager.getInvoices().find(i => i.no === invoiceNo);
+    if (invoice) {
+        invoice.customer = customer;
+        invoice.jobNo = jobNumber;
+        invoice.date = date;
+        invoice.total = amount / 80; // Convert to USD
+        invoice.tax = (amount / 80) * 0.18;
+        invoice.status = status;
+        invoice.notes = notes;
+    }
+    
+    alert(`✅ Invoice Updated!\n\n📋 Invoice: ${invoiceNo}\n👥 Customer: ${customer}\n💰 Amount: ₹${amount.toLocaleString('en-IN')}\n📅 Status: ${status.toUpperCase()}`);
+    
+    loadBillingData();
+    closeEditModal();
+});
 
 window.onclick = function(event) {
     const modal = document.getElementById('createInvoiceModal');

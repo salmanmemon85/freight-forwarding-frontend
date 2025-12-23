@@ -58,14 +58,16 @@ function displayPayrollData(users) {
     users.forEach(user => {
         const commission = user.commission ? user.commission.pending : 0;
         
-        // Get attendance data for salary calculation
-        const attendanceData = window.attendanceManager ? 
-            window.attendanceManager.getPayrollAttendance(user.id, month, year) : 
-            { attendanceRate: 100, present: 30, totalHours: 240 };
+        // Get shifts and leaves data
+        const shiftsData = getEmployeeShifts(user.id, month, year);
+        const leavesData = getEmployeeLeaves(user.id, month, year);
         
-        // Calculate salary based on attendance
+        // Calculate salary based on shifts and leaves
         const baseSalary = user.salary;
-        const attendanceAdjustedSalary = (baseSalary * attendanceData.attendanceRate) / 100;
+        const workingDays = 30;
+        const actualWorkingDays = workingDays - leavesData.totalDays;
+        const attendanceRate = (actualWorkingDays / workingDays) * 100;
+        const attendanceAdjustedSalary = (baseSalary * attendanceRate) / 100;
         const totalSalary = attendanceAdjustedSalary + commission;
         
         const row = `
@@ -80,7 +82,15 @@ function displayPayrollData(users) {
                 </td>
                 <td>
                     <div>₹${baseSalary.toLocaleString('en-IN')}</div>
-                    <small>Attendance: ${attendanceData.attendanceRate}% (${attendanceData.present} days)</small>
+                    <small>Attendance: ${attendanceRate.toFixed(1)}%</small>
+                </td>
+                <td>
+                    <div><strong>${shiftsData.totalShifts}</strong> shifts</div>
+                    <small>${shiftsData.overtimeHours}h overtime</small>
+                </td>
+                <td>
+                    <div><strong>${leavesData.totalDays}</strong> days</div>
+                    <small>${leavesData.pending} pending</small>
                 </td>
                 <td>
                     ${commission > 0 ? 
@@ -96,10 +106,6 @@ function displayPayrollData(users) {
                 <td>
                     <button class="btn-small" onclick="viewPayrollDetails('${user.id}')">👁️ View</button>
                     <button class="btn-small btn-primary" onclick="processSalary('${user.id}')">💳 Pay</button>
-                    ${user.commission && commission > 0 ? 
-                        `<button class="btn-small" onclick="payUserCommission('${user.id}')">💰 Commission</button>` : 
-                        ''
-                    }
                 </td>
             </tr>
         `;
@@ -324,3 +330,258 @@ function logout() {
     sessionStorage.removeItem('currentUser');
     window.location.href = 'login.html';
 }
+
+// Shifts Management
+let shiftsData = JSON.parse(localStorage.getItem('employeeShifts')) || [];
+let leavesData = JSON.parse(localStorage.getItem('employeeLeaves')) || [];
+
+function manageShifts() {
+    loadEmployeeOptions('shiftEmployee');
+    loadShiftsData();
+    document.getElementById('shiftsModal').style.display = 'block';
+}
+
+function manageLeaves() {
+    loadEmployeeOptions('leaveEmployee');
+    loadLeavesData();
+    document.getElementById('leavesModal').style.display = 'block';
+}
+
+function loadEmployeeOptions(selectId) {
+    const users = window.userManager.getUsers().filter(u => u.status === 'active');
+    const select = document.getElementById(selectId);
+    select.innerHTML = '<option value="">Select Employee</option>';
+    
+    users.forEach(user => {
+        select.innerHTML += `<option value="${user.id}">${user.name} - ${user.role}</option>`;
+    });
+}
+
+function addShift() {
+    const employeeId = document.getElementById('shiftEmployee').value;
+    const date = document.getElementById('shiftDate').value;
+    const shiftType = document.getElementById('shiftType').value;
+    const hoursWorked = parseFloat(document.getElementById('hoursWorked').value) || 8;
+    const status = document.getElementById('shiftStatus').value;
+    const notes = document.getElementById('shiftNotes').value;
+    
+    if (!employeeId || !date || !shiftType) {
+        alert('❌ Please fill all required fields!');
+        return;
+    }
+    
+    const employee = window.userManager.getUserById(employeeId);
+    const shift = {
+        id: Date.now().toString(),
+        employeeId,
+        employeeName: employee.name,
+        date,
+        shiftType,
+        hoursWorked,
+        status,
+        notes,
+        createdAt: new Date().toISOString()
+    };
+    
+    shiftsData.push(shift);
+    localStorage.setItem('employeeShifts', JSON.stringify(shiftsData));
+    
+    loadShiftsData();
+    document.getElementById('shiftEmployee').value = '';
+    document.getElementById('shiftDate').value = '';
+    document.getElementById('shiftType').value = '';
+    document.getElementById('hoursWorked').value = '8';
+    document.getElementById('shiftStatus').value = 'present';
+    document.getElementById('shiftNotes').value = '';
+    
+    alert(`✅ Shift added successfully!\n\n👤 Employee: ${employee.name}\n📅 Date: ${formatDate(date)}\n🕰️ Shift: ${shiftType}\n⏱️ Hours: ${hoursWorked}`);
+}
+
+function loadShiftsData() {
+    const tbody = document.getElementById('shiftsTable');
+    tbody.innerHTML = '';
+    
+    const recentShifts = shiftsData.slice(-20).reverse();
+    
+    recentShifts.forEach(shift => {
+        const statusClass = shift.status === 'present' ? 'success' : 
+                           shift.status === 'absent' ? 'danger' : 'warning';
+        
+        const row = `
+            <tr>
+                <td>${shift.employeeName}</td>
+                <td>${formatDate(shift.date)}</td>
+                <td>${shift.shiftType}</td>
+                <td>${shift.hoursWorked}h</td>
+                <td><span class="status-${statusClass}">${shift.status.toUpperCase()}</span></td>
+                <td>
+                    <button class="btn-small" onclick="editShift('${shift.id}')">Edit</button>
+                    <button class="btn-small btn-danger" onclick="deleteShift('${shift.id}')">Delete</button>
+                </td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
+
+function applyLeave() {
+    const employeeId = document.getElementById('leaveEmployee').value;
+    const leaveType = document.getElementById('leaveType').value;
+    const fromDate = document.getElementById('leaveFromDate').value;
+    const toDate = document.getElementById('leaveToDate').value;
+    const reason = document.getElementById('leaveReason').value;
+    const status = document.getElementById('leaveStatus').value;
+    
+    if (!employeeId || !leaveType || !fromDate || !toDate || !reason) {
+        alert('❌ Please fill all required fields!');
+        return;
+    }
+    
+    const employee = window.userManager.getUserById(employeeId);
+    const days = calculateLeaveDays(fromDate, toDate);
+    
+    const leave = {
+        id: Date.now().toString(),
+        employeeId,
+        employeeName: employee.name,
+        leaveType,
+        fromDate,
+        toDate,
+        days,
+        reason,
+        status,
+        appliedAt: new Date().toISOString()
+    };
+    
+    leavesData.push(leave);
+    localStorage.setItem('employeeLeaves', JSON.stringify(leavesData));
+    
+    loadLeavesData();
+    document.getElementById('leaveEmployee').value = '';
+    document.getElementById('leaveType').value = '';
+    document.getElementById('leaveFromDate').value = '';
+    document.getElementById('leaveToDate').value = '';
+    document.getElementById('leaveDays').value = '';
+    document.getElementById('leaveReason').value = '';
+    document.getElementById('leaveStatus').value = 'pending';
+    
+    alert(`✅ Leave application submitted!\n\n👤 Employee: ${employee.name}\n🏠 Type: ${leaveType}\n📅 Duration: ${formatDate(fromDate)} to ${formatDate(toDate)}\n📆 Days: ${days}`);
+}
+
+function loadLeavesData() {
+    const tbody = document.getElementById('leavesTable');
+    tbody.innerHTML = '';
+    
+    const recentLeaves = leavesData.slice(-20).reverse();
+    
+    recentLeaves.forEach(leave => {
+        const statusClass = leave.status === 'approved' ? 'success' : 
+                           leave.status === 'rejected' ? 'danger' : 'warning';
+        
+        const row = `
+            <tr>
+                <td>${leave.employeeName}</td>
+                <td>${leave.leaveType}</td>
+                <td>${formatDate(leave.fromDate)} - ${formatDate(leave.toDate)}</td>
+                <td>${leave.days}</td>
+                <td><span class="status-${statusClass}">${leave.status.toUpperCase()}</span></td>
+                <td>
+                    <button class="btn-small" onclick="approveLeave('${leave.id}')">Approve</button>
+                    <button class="btn-small btn-danger" onclick="rejectLeave('${leave.id}')">Reject</button>
+                </td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
+
+function calculateLeaveDays(fromDate, toDate) {
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    const diffTime = Math.abs(to - from);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    document.getElementById('leaveDays').value = diffDays;
+    return diffDays;
+}
+
+function getEmployeeShifts(employeeId, month, year) {
+    const employeeShifts = shiftsData.filter(shift => {
+        const shiftDate = new Date(shift.date);
+        return shift.employeeId === employeeId && 
+               shiftDate.getMonth() + 1 === month && 
+               shiftDate.getFullYear() === year;
+    });
+    
+    const totalShifts = employeeShifts.length;
+    const overtimeHours = employeeShifts
+        .filter(s => s.shiftType === 'overtime')
+        .reduce((sum, s) => sum + s.hoursWorked, 0);
+    
+    return { totalShifts, overtimeHours };
+}
+
+function getEmployeeLeaves(employeeId, month, year) {
+    const employeeLeaves = leavesData.filter(leave => {
+        const fromDate = new Date(leave.fromDate);
+        const toDate = new Date(leave.toDate);
+        return leave.employeeId === employeeId && 
+               ((fromDate.getMonth() + 1 === month && fromDate.getFullYear() === year) ||
+                (toDate.getMonth() + 1 === month && toDate.getFullYear() === year));
+    });
+    
+    const totalDays = employeeLeaves
+        .filter(l => l.status === 'approved')
+        .reduce((sum, l) => sum + l.days, 0);
+    const pending = employeeLeaves.filter(l => l.status === 'pending').length;
+    
+    return { totalDays, pending };
+}
+
+function approveLeave(leaveId) {
+    const leave = leavesData.find(l => l.id === leaveId);
+    if (leave) {
+        leave.status = 'approved';
+        localStorage.setItem('employeeLeaves', JSON.stringify(leavesData));
+        loadLeavesData();
+        loadPayrollData(); // Refresh payroll to reflect leave impact
+        alert(`✅ Leave approved for ${leave.employeeName}`);
+    }
+}
+
+function rejectLeave(leaveId) {
+    const leave = leavesData.find(l => l.id === leaveId);
+    if (leave) {
+        leave.status = 'rejected';
+        localStorage.setItem('employeeLeaves', JSON.stringify(leavesData));
+        loadLeavesData();
+        alert(`❌ Leave rejected for ${leave.employeeName}`);
+    }
+}
+
+function closeShiftsModal() {
+    document.getElementById('shiftsModal').style.display = 'none';
+}
+
+function closeLeavesModal() {
+    document.getElementById('leavesModal').style.display = 'none';
+}
+
+// Auto-calculate leave days when dates change
+document.addEventListener('DOMContentLoaded', function() {
+    const fromDateEl = document.getElementById('leaveFromDate');
+    const toDateEl = document.getElementById('leaveToDate');
+    
+    if (fromDateEl && toDateEl) {
+        fromDateEl.addEventListener('change', function() {
+            if (fromDateEl.value && toDateEl.value) {
+                calculateLeaveDays(fromDateEl.value, toDateEl.value);
+            }
+        });
+        
+        toDateEl.addEventListener('change', function() {
+            if (fromDateEl.value && toDateEl.value) {
+                calculateLeaveDays(fromDateEl.value, toDateEl.value);
+            }
+        });
+    }
+});

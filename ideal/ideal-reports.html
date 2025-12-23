@@ -44,6 +44,34 @@
 
             <div class="content-section">
                 <div class="reports-grid">
+                    <!-- Transport Mode Reports -->
+                    <div class="report-card" onclick="showSeaFreightReport()">
+                        <div class="report-icon">🚢</div>
+                        <h3>Sea Freight Report</h3>
+                        <p>Container shipments, vessel schedules, port charges, sea freight revenue</p>
+                        <div class="report-stats">
+                            <span>Containers: <span id="seaContainers">0</span> | Revenue: ₹<span id="seaRevenue">0</span></span>
+                        </div>
+                    </div>
+
+                    <div class="report-card" onclick="showAirFreightReport()">
+                        <div class="report-icon">✈️</div>
+                        <h3>Air Freight Report</h3>
+                        <p>Flight schedules, weight analysis, airline costs, air freight performance</p>
+                        <div class="report-stats">
+                            <span>Weight: <span id="airWeight">0</span>kg | Revenue: ₹<span id="airRevenue">0</span></span>
+                        </div>
+                    </div>
+
+                    <div class="report-card" onclick="showCourierReport()">
+                        <div class="report-icon">📦</div>
+                        <h3>Courier Report</h3>
+                        <p>Express deliveries, courier partners, delivery times, courier revenue</p>
+                        <div class="report-stats">
+                            <span>Shipments: <span id="courierShipments">0</span> | Revenue: ₹<span id="courierRevenue">0</span></span>
+                        </div>
+                    </div>
+
                     <div class="report-card" onclick="showSalesReport()">
                         <div class="report-icon">💰</div>
                         <h3>Sales Report</h3>

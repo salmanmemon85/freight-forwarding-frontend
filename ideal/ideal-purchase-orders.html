@@ -90,16 +90,18 @@
                     <h4>Basic Information</h4>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Invoice Type *</label>
-                            <select id="invoiceType" required onchange="updateInvoiceFields()">
-                                <option value="">Select Type</option>
-                                <option value="airline">✈️ Airline</option>
-                                <option value="shipping">🚢 Shipping</option>
-                                <option value="courier">📦 Courier</option>
+                            <label>Service Type *</label>
+                            <select id="serviceType" required onchange="updateServiceFields()">
+                                <option value="">Select Service</option>
+                                <option value="freight">🚢 Sea/Air Freight</option>
+                                <option value="customs">🏛️ Customs Clearance</option>
+                                <option value="transport">🚛 Local Transport</option>
+                                <option value="documentation">📄 Documentation</option>
+                                <option value="other">🔧 Other Services</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Vendor *</label>
+                            <label>Vendor/Agent *</label>
                             <select id="vendorSelect" required>
                                 <option value="">Select Vendor</option>
                             </select>
@@ -107,136 +109,122 @@
                     </div>
                 </div>
 
-                <div class="form-section" id="airlineFields" style="display: none;">
-                    <h4>✈️ Airline Details</h4>
+                <div class="form-section">
+                    <h4>Service Details</h4>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Flight Number</label>
-                            <input type="text" id="flightNumber" placeholder="EK 123">
+                            <label>Description *</label>
+                            <textarea id="serviceDescription" required placeholder="Enter service description..."></textarea>
                         </div>
                         <div class="form-group">
-                            <label>Weight (kg)</label>
-                            <input type="number" id="weight" step="0.1" onchange="calculateTotal()">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Rate per kg (₹)</label>
-                            <input type="number" id="ratePerKg" step="0.01" onchange="calculateTotal()">
-                        </div>
-                        <div class="form-group">
-                            <label>Fuel Surcharge (₹)</label>
-                            <input type="number" id="fuelSurcharge" step="0.01" value="0" onchange="calculateTotal()">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Security Fee (₹)</label>
-                            <input type="number" id="securityFee" step="0.01" value="0" onchange="calculateTotal()">
-                        </div>
-                        <div class="form-group">
-                            <label>Route</label>
-                            <input type="text" id="route" placeholder="KHI-DXB">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section" id="shippingFields" style="display: none;">
-                    <h4>🚢 Shipping Details</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Vessel Name</label>
-                            <input type="text" id="vesselName" placeholder="MV EXAMPLE">
-                        </div>
-                        <div class="form-group">
-                            <label>Container Qty</label>
-                            <input type="number" id="containerQty" min="1" onchange="calculateTotal()">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Container Type</label>
-                            <select id="containerType">
-                                <option value="20ft">20ft Container</option>
-                                <option value="40ft">40ft Container</option>
-                                <option value="40hc">40ft HC Container</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Rate per Container (₹)</label>
-                            <input type="number" id="ratePerContainer" step="0.01" onchange="calculateTotal()">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Port Charges (₹)</label>
-                            <input type="number" id="portCharges" step="0.01" value="0" onchange="calculateTotal()">
-                        </div>
-                        <div class="form-group">
-                            <label>Documentation (₹)</label>
-                            <input type="number" id="shippingDocs" step="0.01" value="0" onchange="calculateTotal()">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section" id="courierFields" style="display: none;">
-                    <h4>📦 Courier Details</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Service Type</label>
-                            <select id="serviceType">
-                                <option value="express">Express</option>
-                                <option value="standard">Standard</option>
-                                <option value="economy">Economy</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Pieces</label>
-                            <input type="number" id="pieces" min="1" onchange="calculateTotal()">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Rate per Piece (₹)</label>
-                            <input type="number" id="ratePerPiece" step="0.01" onchange="calculateTotal()">
-                        </div>
-                        <div class="form-group">
-                            <label>COD Charges (₹)</label>
-                            <input type="number" id="codCharges" step="0.01" value="0" onchange="calculateTotal()">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Insurance (₹)</label>
-                            <input type="number" id="insurance" step="0.01" value="0" onchange="calculateTotal()">
-                        </div>
-                        <div class="form-group">
-                            <label>Destination</label>
-                            <input type="text" id="destination" placeholder="City/Country">
+                            <label>Job Reference</label>
+                            <input type="text" id="jobReference" placeholder="Job number (optional)">
                         </div>
                     </div>
                 </div>
 
                 <div class="form-section">
-                    <h4>Total Amount</h4>
+                    <h4>Rate & Amount</h4>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Subtotal (₹)</label>
-                            <input type="number" id="subtotal" readonly>
+                            <label>Currency *</label>
+                            <select id="currency" required onchange="updateCurrencySymbol()">
+                                <option value="PKR">₹ PKR - Pakistani Rupee</option>
+                                <option value="USD">$ USD - US Dollar</option>
+                                <option value="EUR">€ EUR - Euro</option>
+                                <option value="GBP">£ GBP - British Pound</option>
+                                <option value="AED">AED - UAE Dirham</option>
+                                <option value="SAR">SAR - Saudi Riyal</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Additional Charges (₹)</label>
+                            <label>Tax Rate (%)</label>
+                            <select id="taxRate" onchange="calculateTotal()">
+                                <option value="0">No Tax</option>
+                                <option value="5">5% - Standard</option>
+                                <option value="18" selected>18% - GST</option>
+                                <option value="10">10% - Service Tax</option>
+                                <option value="15">15% - VAT</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input type="number" id="quantity" step="0.01" value="1" onchange="calculateTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label>Unit</label>
+                            <input type="text" id="unit" placeholder="e.g., CBM, KG, Container, Job" value="Job">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Negotiated Rate <span id="currencySymbol">₹</span> *</label>
+                            <input type="number" id="negotiatedRate" step="0.01" required onchange="calculateTotal()" placeholder="Enter your deal rate">
+                        </div>
+                        <div class="form-group">
+                            <label>Additional Charges <span id="currencySymbol2">₹</span></label>
                             <input type="number" id="additionalCharges" step="0.01" value="0" onchange="calculateTotal()">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label><strong>Total Amount (₹)</strong></label>
-                            <input type="number" id="totalAmount" readonly style="font-weight: bold;">
+                            <label>Subtotal <span id="currencySymbol3">₹</span></label>
+                            <input type="number" id="subtotal" readonly>
                         </div>
                         <div class="form-group">
+                            <label>Tax Amount <span id="currencySymbol4">₹</span></label>
+                            <input type="number" id="taxAmount" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><strong>Total Amount <span id="currencySymbol5">₹</span></strong></label>
+                            <input type="number" id="totalAmount" readonly style="font-weight: bold; font-size: 18px;">
+                        </div>
+                        <div class="form-group">
+                            <label><strong>PKR Equivalent</strong></label>
+                            <input type="text" id="pkrEquivalent" readonly style="font-weight: bold; color: #007bff;">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Payment Terms</label>
+                            <select id="paymentTerms">
+                                <option value="advance">100% Advance</option>
+                                <option value="net30">Net 30 Days</option>
+                                <option value="cod">Cash on Delivery</option>
+                                <option value="credit">Credit Terms</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Exchange Rate (to PKR)</label>
+                            <input type="number" id="exchangeRate" step="0.01" value="1" onchange="calculateTotal()" placeholder="Auto-filled">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4>Additional Information</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Required Date</label>
+                            <input type="date" id="requiredDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <select id="priority">
+                                <option value="normal">Normal</option>
+                                <option value="urgent">Urgent</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="grid-column: 1 / -1;">
                             <label>Notes</label>
-                            <textarea id="notes" rows="2" placeholder="Additional notes..."></textarea>
+                            <textarea id="notes" rows="3" placeholder="Any special instructions or notes..."></textarea>
                         </div>
                     </div>
                 </div>

@@ -1,14 +1,14 @@
 {
   "logo": {
-    "title": "FreightW",
-    "subtitle": "Ideal Freight Software"
+    "title": "Quik Shipping",
+    "subtitle": "Quik Shipping Software"
   },
   "menuItems": [
     {
       "id": "dashboard",
       "icon": "📊",
       "label": "Dashboard",
-      "url": "ideal-dashboard.html",
+      "url": "index.html",
       "roles": ["admin", "manager", "sales", "operations", "accounts"]
     },
     {
@@ -42,24 +42,49 @@
     {
       "id": "documents",
       "icon": "📄",
-      "label": "Documents Upload",
+      "label": "Documents",
       "url": "ideal-documents.html",
-      "roles": ["admin", "manager", "operations"]
+      "roles": ["admin", "manager", "operations"],
+      "submenu": [
+        {
+          "id": "bill-of-lading",
+          "icon": "📄",
+          "label": "Bill of Lading",
+          "url": "bill-of-lading.html"
+        },
+        {
+          "id": "delivery-order",
+          "icon": "📋",
+          "label": "Delivery Order",
+          "url": "delivery-order.html"
+        },
+        {
+          "id": "air-waybill",
+          "icon": "✈️",
+          "label": "Air Waybill",
+          "url": "air-waybill.html"
+        },
+        {
+          "id": "arrival-notice",
+          "icon": "📢",
+          "label": "Arrival Notice",
+          "url": "arrival-notice.html"
+        },
+        {
+          "id": "commercial-invoice",
+          "icon": "🧾",
+          "label": "Commercial Invoice",
+          "url": "commercial-invoice.html"
+        },
+        {
+          "id": "packing-list",
+          "icon": "📦",
+          "label": "Packing List",
+          "url": "packing-list.html"
+        }
+      ]
     },
-    {
-      "id": "arrival-notices",
-      "icon": "📋",
-      "label": "Arrival Notices",
-      "url": "ideal-arrival-notices.html",
-      "roles": ["admin", "manager", "operations"]
-    },
-    {
-      "id": "job-documents",
-      "icon": "📁",
-      "label": "Job Documents",
-      "url": "ideal-job-documents.html",
-      "roles": ["admin", "manager", "operations"]
-    },
+
     {
       "id": "purchase-orders",
       "icon": "🛒",

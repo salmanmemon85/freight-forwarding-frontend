@@ -19,7 +19,8 @@
                 <h1>💰 Payroll Management</h1>
                 <div class="header-actions">
                     <button class="btn-primary" onclick="generatePayroll()">📊 Generate Payroll</button>
-                    <button class="btn-secondary" onclick="payCommissions()">💳 Pay Commissions</button>
+                    <button class="btn-secondary" onclick="manageShifts()">🕰️ Manage Shifts</button>
+                    <button class="btn-secondary" onclick="manageLeaves()">🏠 Manage Leaves</button>
                 </div>
             </div>
 
@@ -74,6 +75,8 @@
                                 <th>Employee</th>
                                 <th>Role & Branch</th>
                                 <th>Basic Salary</th>
+                                <th>Shifts Worked</th>
+                                <th>Leaves Taken</th>
                                 <th>Commission</th>
                                 <th>Total Salary</th>
                                 <th>Status</th>
@@ -87,6 +90,179 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Manage Shifts Modal -->
+    <div id="shiftsModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>🕰️ Shift Management</h3>
+                <span class="close" onclick="closeShiftsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h4>Add/Edit Shift</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Employee *</label>
+                            <select id="shiftEmployee" required>
+                                <option value="">Select Employee</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" id="shiftDate" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Shift Type *</label>
+                            <select id="shiftType" required>
+                                <option value="">Select Shift</option>
+                                <option value="morning">Morning (9 AM - 5 PM)</option>
+                                <option value="evening">Evening (2 PM - 10 PM)</option>
+                                <option value="night">Night (10 PM - 6 AM)</option>
+                                <option value="overtime">Overtime</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Hours Worked</label>
+                            <input type="number" id="hoursWorked" step="0.5" min="0" max="24" value="8">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="shiftStatus">
+                                <option value="present">Present</option>
+                                <option value="absent">Absent</option>
+                                <option value="half-day">Half Day</option>
+                                <option value="late">Late</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <input type="text" id="shiftNotes" placeholder="Optional notes...">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="addShift()">Add Shift</button>
+                        <button type="button" onclick="closeShiftsModal()">Cancel</button>
+                    </div>
+                </div>
+                
+                <div class="shifts-list">
+                    <h4>Recent Shifts</h4>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Date</th>
+                                    <th>Shift</th>
+                                    <th>Hours</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shiftsTable">
+                                <!-- Shifts data -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Leaves Modal -->
+    <div id="leavesModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>🏠 Leave Management</h3>
+                <span class="close" onclick="closeLeavesModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h4>Apply/Manage Leave</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Employee *</label>
+                            <select id="leaveEmployee" required>
+                                <option value="">Select Employee</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Leave Type *</label>
+                            <select id="leaveType" required>
+                                <option value="">Select Leave Type</option>
+                                <option value="annual">Annual Leave</option>
+                                <option value="sick">Sick Leave</option>
+                                <option value="casual">Casual Leave</option>
+                                <option value="emergency">Emergency Leave</option>
+                                <option value="maternity">Maternity Leave</option>
+                                <option value="paternity">Paternity Leave</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>From Date *</label>
+                            <input type="date" id="leaveFromDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>To Date *</label>
+                            <input type="date" id="leaveToDate" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Total Days</label>
+                            <input type="number" id="leaveDays" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="leaveStatus">
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Reason *</label>
+                            <textarea id="leaveReason" required placeholder="Reason for leave..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="applyLeave()">Apply Leave</button>
+                        <button type="button" onclick="closeLeavesModal()">Cancel</button>
+                    </div>
+                </div>
+                
+                <div class="leaves-list">
+                    <h4>Leave Applications</h4>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Leave Type</th>
+                                    <th>From - To</th>
+                                    <th>Days</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leavesTable">
+                                <!-- Leaves data -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="sidebar-manager.js"></script>

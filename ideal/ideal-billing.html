@@ -11,7 +11,26 @@
 <body>
     <div class="container-fluid">
         <nav class="sidebar">
-            <!-- Sidebar will be dynamically generated -->
+            <div class="logo">
+                <h2>FreightW</h2>
+                <p>Ideal Freight Software</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="ideal-dashboard.html" class="nav-item">📊 Dashboard</a></li>
+                <li><a href="ideal-parties.html" class="nav-item">👥 Parties (CRM)</a></li>
+                <li><a href="ideal-enquiries.html" class="nav-item">📞 Enquiries</a></li>
+                <li><a href="ideal-quotations.html" class="nav-item">💰 Quotations</a></li>
+                <li><a href="ideal-jobs.html" class="nav-item">💼 Jobs</a></li>
+                <li><a href="ideal-documents.html" class="nav-item">📄 Documents</a></li>
+                <li><a href="ideal-billing.html" class="nav-item active">🧾 Billing</a></li>
+                <li><a href="ideal-payments.html" class="nav-item">💳 Payments</a></li>
+                <li><a href="ideal-outstanding.html" class="nav-item">⏰ Outstanding</a></li>
+                <li><a href="ideal-reports.html" class="nav-item">📈 Reports</a></li>
+            </ul>
+            <div class="user-info">
+                <p id="currentUser">Loading...</p>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
         </nav>
 
         <main class="main-content">
@@ -79,6 +98,152 @@
         </main>
     </div>
 
+    <!-- Credit/Debit Note Modal -->
+    <div id="creditDebitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="noteModalTitle">Create Credit Note</h3>
+                <span class="close" onclick="closeCreditDebitModal()">&times;</span>
+            </div>
+            <form id="creditDebitForm">
+                <input type="hidden" id="originalInvoiceId">
+                <input type="hidden" id="noteType">
+                
+                <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Original Invoice</label>
+                            <input type="text" id="originalInvoiceNo" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Original Amount</label>
+                            <input type="text" id="originalAmount" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Adjustment Amount (₹) *</label>
+                            <input type="number" id="adjustmentAmount" step="0.01" required onchange="calculateNoteTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label>Reason *</label>
+                            <select id="adjustmentReason" required>
+                                <option value="">Select Reason</option>
+                                <option value="rate_correction">Rate Correction</option>
+                                <option value="quantity_adjustment">Quantity Adjustment</option>
+                                <option value="service_change">Service Change</option>
+                                <option value="discount_applied">Discount Applied</option>
+                                <option value="additional_charges">Additional Charges</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Description *</label>
+                            <textarea id="adjustmentDescription" required placeholder="Explain the reason for adjustment..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>GST on Adjustment (18%)</label>
+                            <input type="number" id="adjustmentGST" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Total Adjustment</strong></label>
+                            <input type="number" id="totalAdjustment" readonly style="font-weight: bold;">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><strong>New Invoice Amount</strong></label>
+                            <input type="number" id="newInvoiceAmount" readonly style="font-weight: bold; color: #007bff;">
+                        </div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="noteDate" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeCreditDebitModal()">Cancel</button>
+                    <button type="submit" id="createNoteBtn">Create Credit Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Invoice Modal -->
+    <div id="editInvoiceModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>Edit Invoice</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editInvoiceForm">
+                <input type="hidden" id="editInvoiceId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Invoice Number</label>
+                        <input type="text" id="editInvoiceNo" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Customer</label>
+                        <input type="text" id="editCustomer" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Job Number</label>
+                        <input type="text" id="editJobNumber">
+                    </div>
+                    <div class="form-group">
+                        <label>Invoice Date</label>
+                        <input type="date" id="editInvoiceDate" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Amount (₹) *</label>
+                        <input type="number" id="editAmount" step="0.01" required onchange="calculateEditTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label>GST (18%)</label>
+                        <input type="number" id="editGST" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><strong>Total Amount</strong></label>
+                        <input type="number" id="editTotal" readonly style="font-weight: bold;">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="editStatus">
+                            <option value="draft">Draft</option>
+                            <option value="sent">Sent</option>
+                            <option value="paid">Paid</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Notes</label>
+                        <textarea id="editNotes" rows="3" placeholder="Invoice notes..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit">Update Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Create Invoice Modal -->
     <div id="createInvoiceModal" class="modal">
         <div class="modal-content large-modal">
@@ -87,6 +252,29 @@
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
             <form id="createInvoiceForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Currency *</label>
+                        <select id="invoiceCurrency" required onchange="updateInvoiceCurrency()">
+                            <option value="PKR">₹ PKR - Pakistani Rupee</option>
+                            <option value="USD">$ USD - US Dollar</option>
+                            <option value="EUR">€ EUR - Euro</option>
+                            <option value="GBP">£ GBP - British Pound</option>
+                            <option value="AED">AED - UAE Dirham</option>
+                            <option value="SAR">SAR - Saudi Riyal</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tax Rate (%)</label>
+                        <select id="invoiceTaxRate" onchange="calculateBillingTotal()">
+                            <option value="0">No Tax</option>
+                            <option value="5">5% - Standard</option>
+                            <option value="18" selected>18% - GST</option>
+                            <option value="10">10% - Service Tax</option>
+                            <option value="15">15% - VAT</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Invoice Type *</label>
@@ -98,14 +286,14 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Customer</label>
-                        <input type="text" id="customer" readonly>
+                        <label>Exchange Rate (to PKR)</label>
+                        <input type="number" id="invoiceExchangeRate" step="0.01" value="1" onchange="calculateBillingTotal()" placeholder="Auto-filled">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Job Number</label>
-                        <input type="text" id="jobNumber" readonly>
+                        <label>Customer</label>
+                        <input type="text" id="customer" readonly>
                     </div>
                     <div class="form-group">
                         <label>Invoice Date</label>
@@ -188,34 +376,16 @@
                     <div id="courierBillingFields" style="display: none;">
                         <div class="item-row">
                             <div class="form-group">
-                                <label>Service Type</label>
-                                <select id="serviceType">
-                                    <option value="express">Express</option>
-                                    <option value="standard">Standard</option>
-                                    <option value="economy">Economy</option>
-                                </select>
+                                <label>AWB Number</label>
+                                <input type="text" id="awbNumber" placeholder="123456789">
                             </div>
                             <div class="form-group">
-                                <label>Pieces</label>
-                                <input type="number" id="pieces" min="1" onchange="calculateBillingTotal()">
+                                <label>Weight (kg)</label>
+                                <input type="number" id="courierWeight" step="0.1" onchange="calculateBillingTotal()">
                             </div>
                             <div class="form-group">
-                                <label>Rate per Piece (₹)</label>
-                                <input type="number" id="ratePerPiece" step="0.01" onchange="calculateBillingTotal()">
-                            </div>
-                        </div>
-                        <div class="item-row">
-                            <div class="form-group">
-                                <label>COD Charges (₹)</label>
-                                <input type="number" id="codCharges" step="0.01" value="0" onchange="calculateBillingTotal()">
-                            </div>
-                            <div class="form-group">
-                                <label>Insurance (₹)</label>
-                                <input type="number" id="insurance" step="0.01" value="0" onchange="calculateBillingTotal()">
-                            </div>
-                            <div class="form-group">
-                                <label>Destination</label>
-                                <input type="text" id="destination" placeholder="City/Country">
+                                <label>Rate per kg (₹)</label>
+                                <input type="number" id="courierRate" step="0.01" onchange="calculateBillingTotal()">
                             </div>
                         </div>
                     </div>
@@ -223,19 +393,25 @@
 
                 <div class="form-section">
                     <h4>Invoice Summary</h4>
-                    <div class="invoice-summary">
-                        <div class="summary-row">
-                            <label>Subtotal:</label>
-                            <span id="subtotal">₹0.00</span>
-                        </div>
-                        <div class="summary-row">
-                            <label>GST (18%):</label>
-                            <span id="gstAmount">₹0.00</span>
-                        </div>
-                        <div class="summary-row total">
-                            <label>Total Amount:</label>
-                            <span id="totalAmount">₹0.00</span>
-                        </div>
+                    <div class="summary-row">
+                        <label>Job Number:</label>
+                        <input type="text" id="jobNumber" readonly style="border: none; background: transparent;">
+                    </div>
+                    <div class="summary-row">
+                        <label>Subtotal <span id="invoiceCurrencySymbol">₹</span>:</label>
+                        <span id="subtotal">0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <label>Tax <span id="invoiceTaxPercent">(18%)</span>:</label>
+                        <span id="gstAmount">0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <label>Total Amount <span id="invoiceCurrencySymbol2">₹</span>:</label>
+                        <span id="totalAmount">0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <label><strong>PKR Equivalent:</strong></label>
+                        <span id="pkrTotal" style="font-weight: bold; color: #007bff;">₹0.00</span>
                     </div>
                 </div>
 
@@ -246,6 +422,11 @@
             </form>
         </div>
     </div>
+
+    <script src="workflow-manager.js"></script>
+    <script src="ideal-billing.js"></script>
+</body>
+</html>iv>
 
     <script src="sidebar-manager.js"></script>
     <script src="workflow-manager.js"></script>

@@ -50,15 +50,21 @@ function displayDocuments(jobs) {
     tbody.innerHTML = '';
     
     jobs.forEach(job => {
-        const docStatus = getDocumentStatus(job);
-        const statusClass = getJobStatusClass(job.status); // Use job status instead of doc status
-        const nextAction = getNextDocAction(job);
+        const requiredDocs = window.workflowManager.getRequiredDocuments(job.mode);
+        const jobDocs = window.workflowManager.getJobDocuments(job.no);
+        
+        const totalRequired = Object.keys(requiredDocs).length;
+        const uploaded = Object.keys(jobDocs).length;
+        const pending = totalRequired - uploaded;
+        
+        const statusClass = getJobStatusClass(job.status);
+        const nextAction = getNextDocAction(job, uploaded, totalRequired);
         
         const row = `
             <tr>
                 <td>
                     <strong>${job.no}</strong>
-                    <br><small>QUO: ${job.quotationNo}</small>
+                    <br><small>Mode: ${job.mode}</small>
                 </td>
                 <td>${formatDate(job.date)}</td>
                 <td>
@@ -66,16 +72,16 @@ function displayDocuments(jobs) {
                     <small>${job.contact}</small>
                 </td>
                 <td>
-                    <div>${job.type} | ${job.mode}</div>
+                    <div>${job.mode} | ${job.type}</div>
                     <small>${job.origin} → ${job.destination}</small>
                 </td>
                 <td>
-                    <div>${docStatus.received}/${docStatus.total}</div>
-                    <small>${docStatus.pending} pending</small>
+                    <div>${uploaded}/${totalRequired}</div>
+                    <small>${pending} pending</small>
                 </td>
                 <td><span class="status-${statusClass}">${job.status.toUpperCase()}</span></td>
                 <td>
-                    <button class="btn-small" onclick="viewDocuments('${job.no}')">📄 View</button>
+                    <button class="btn-small" onclick="viewJobDocuments('${job.no}')">📄 View</button>
                     <button class="btn-small btn-primary" onclick="${nextAction.action}('${job.no}')">${nextAction.label}</button>
                 </td>
             </tr>
@@ -133,19 +139,76 @@ function getDocStatusClass(status) {
     }
 }
 
-function getNextDocAction(job) {
-    // Check job status instead of document status
-    if (job.status === 'documented') {
-        return { action: 'viewDocuments', label: '✅ Done' };
-    } else if (job.status === 'in-progress') {
-        const docStatus = getDocumentStatus(job);
-        if (docStatus.status === 'complete') {
-            return { action: 'markDocumentsComplete', label: '✅ Complete' };
-        } else {
-            return { action: 'uploadDocuments', label: '📤 Upload' };
-        }
+function getNextDocAction(job, uploaded, totalRequired) {
+    if (uploaded === totalRequired) {
+        return { action: 'viewJobDocuments', label: '✅ Complete' };
+    } else if (uploaded > 0) {
+        return { action: 'uploadJobDocuments', label: '📤 Upload More' };
     } else {
-        return { action: 'viewDocuments', label: '👁️ View' };
+        return { action: 'uploadJobDocuments', label: '📤 Upload Docs' };
+    }
+}
+
+function viewJobDocuments(jobNo) {
+    const job = window.workflowManager.getJobs().find(j => j.no === jobNo);
+    const requiredDocs = window.workflowManager.getRequiredDocuments(job.mode);
+    const jobDocs = window.workflowManager.getJobDocuments(jobNo);
+    
+    let docList = `📄 Documents Status - ${jobNo}\n\n`;
+    docList += `👤 Customer: ${job.customer}\n`;
+    docList += `🚢 Route: ${job.origin} → ${job.destination}\n`;
+    docList += `🚚 Mode: ${job.mode}\n\n`;
+    
+    docList += `📋 Required Documents:\n`;
+    
+    Object.keys(requiredDocs).forEach(docType => {
+        const doc = requiredDocs[docType];
+        const isUploaded = jobDocs[docType] ? '✅' : '❌';
+        const requiredText = doc.required ? ' (Required)' : ' (Optional)';
+        docList += `${isUploaded} ${doc.name}${requiredText}\n`;
+    });
+    
+    const uploaded = Object.keys(jobDocs).length;
+    const total = Object.keys(requiredDocs).length;
+    docList += `\n📊 Status: ${uploaded}/${total} documents uploaded`;
+    
+    alert(docList);
+}
+
+function uploadJobDocuments(jobNo) {
+    const job = window.workflowManager.getJobs().find(j => j.no === jobNo);
+    const requiredDocs = window.workflowManager.getRequiredDocuments(job.mode);
+    const jobDocs = window.workflowManager.getJobDocuments(jobNo);
+    
+    let uploadOptions = `📤 Upload Documents - ${jobNo}\n\n`;
+    uploadOptions += `Select document type to upload:\n\n`;
+    
+    Object.keys(requiredDocs).forEach((docType, index) => {
+        const doc = requiredDocs[docType];
+        const status = jobDocs[docType] ? '✅ Uploaded' : '❌ Pending';
+        uploadOptions += `${index + 1}. ${doc.name} - ${status}\n`;
+    });
+    
+    uploadOptions += `\n📝 Choose document number to upload (1-${Object.keys(requiredDocs).length}):`;
+    
+    const choice = prompt(uploadOptions);
+    if (choice && choice >= 1 && choice <= Object.keys(requiredDocs).length) {
+        const docType = Object.keys(requiredDocs)[choice - 1];
+        const docName = requiredDocs[docType].name;
+        
+        // Simulate document upload
+        const documentData = {
+            fileName: `${docName}_${jobNo}.pdf`,
+            fileSize: '2.5 MB',
+            uploadedBy: 'Current User'
+        };
+        
+        window.workflowManager.updateJobDocuments(jobNo, docType, documentData);
+        
+        alert(`✅ Document Uploaded Successfully!\n\n📄 Document: ${docName}\n💾 File: ${documentData.fileName}\n📅 Uploaded: ${new Date().toLocaleString()}`);
+        
+        // Refresh the page
+        loadDocumentsData();
     }
 }
 

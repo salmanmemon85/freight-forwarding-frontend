@@ -34,17 +34,37 @@ function loadReportsData() {
     const outstandingAmount = invoices.filter(i => i.status === 'sent').reduce((sum, i) => sum + (i.total || 0), 0);
     const gstCollected = invoices.reduce((sum, inv) => sum + (inv.tax || 0), 0);
     
+    // Calculate transport mode stats
+    const seaJobs = jobs.filter(j => j.mode === 'sea' || j.origin?.includes('Port') || j.destination?.includes('Port'));
+    const airJobs = jobs.filter(j => j.mode === 'air' || j.origin?.includes('Airport') || j.destination?.includes('Airport'));
+    const courierJobs = jobs.filter(j => j.mode === 'courier' || j.serviceType === 'express');
+    
+    const seaRevenue = seaJobs.reduce((sum, job) => sum + ((job.customerRate || 0) * (job.cbm || 0)), 0);
+    const airRevenue = airJobs.reduce((sum, job) => sum + ((job.customerRate || 0) * (job.cbm || 0)), 0);
+    const courierRevenue = courierJobs.reduce((sum, job) => sum + ((job.customerRate || 0) * (job.cbm || 0)), 0);
+    
+    const seaContainers = seaJobs.reduce((sum, job) => sum + (job.containers || Math.ceil((job.cbm || 0) / 28)), 0);
+    const airWeight = airJobs.reduce((sum, job) => sum + (job.weight || (job.cbm || 0) * 167), 0);
+    const courierShipments = courierJobs.length;
+    
     // Update main stats
     document.getElementById('monthlyRevenue').textContent = '₹' + Math.round(totalRevenue * 80).toLocaleString('en-IN');
     document.getElementById('monthlyProfit').textContent = '₹' + Math.round(totalProfit * 80).toLocaleString('en-IN');
     document.getElementById('profitMargin').textContent = profitMargin + '%';
     document.getElementById('activeCustomers').textContent = activeCustomers;
     
+    // Update transport mode stats
+    document.getElementById('seaContainers').textContent = seaContainers;
+    document.getElementById('seaRevenue').textContent = Math.round(seaRevenue * 80).toLocaleString('en-IN');
+    document.getElementById('airWeight').textContent = Math.round(airWeight).toLocaleString('en-IN');
+    document.getElementById('airRevenue').textContent = Math.round(airRevenue * 80).toLocaleString('en-IN');
+    document.getElementById('courierShipments').textContent = courierShipments;
+    document.getElementById('courierRevenue').textContent = Math.round(courierRevenue * 80).toLocaleString('en-IN');
+    
     // Update report card stats
     document.getElementById('salesAmount').textContent = Math.round(totalRevenue * 80).toLocaleString('en-IN');
     document.getElementById('avgMargin').textContent = profitMargin + '%';
     document.getElementById('topCustomer').textContent = getTopCustomer(jobs);
-    document.getElementById('completedJobs').textContent = completedJobs;
     document.getElementById('outstandingAmount').textContent = Math.round(outstandingAmount * 80).toLocaleString('en-IN');
     document.getElementById('gstCollected').textContent = Math.round(gstCollected * 80).toLocaleString('en-IN');
 }
@@ -61,6 +81,214 @@ function getTopCustomer(jobs) {
         customerRevenue[a] > customerRevenue[b] ? a : b, Object.keys(customerRevenue)[0]);
     
     return topCustomer || 'No customers';
+}
+
+// Transport Mode Reports
+function showSeaFreightReport() {
+    const jobs = window.workflowManager.getJobs();
+    const seaJobs = jobs.filter(j => j.mode === 'sea' || j.origin?.includes('Port') || j.destination?.includes('Port'));
+    
+    document.getElementById('reportTitle').textContent = '🚢 Sea Freight Report';
+    
+    const totalContainers = seaJobs.reduce((sum, job) => sum + (job.containers || Math.ceil((job.cbm || 0) / 28)), 0);
+    const totalRevenue = seaJobs.reduce((sum, job) => sum + ((job.customerRate || 0) * (job.cbm || 0)), 0) * 80;
+    const totalCBM = seaJobs.reduce((sum, job) => sum + (job.cbm || 0), 0);
+    
+    let reportHTML = `
+        <div class="report-summary">
+            <h4>Sea Freight Summary</h4>
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <label>Total Shipments:</label>
+                    <span>${seaJobs.length}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Total Containers:</label>
+                    <span>${totalContainers}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Total CBM:</label>
+                    <span>${totalCBM.toFixed(2)}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Total Revenue:</label>
+                    <span>₹${Math.round(totalRevenue).toLocaleString('en-IN')}</span>
+                </div>
+            </div>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Job No</th>
+                    <th>Customer</th>
+                    <th>Route</th>
+                    <th>CBM</th>
+                    <th>Containers</th>
+                    <th>Revenue</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    seaJobs.forEach(job => {
+        const revenue = (job.customerRate || 0) * (job.cbm || 0) * 80;
+        const containers = job.containers || Math.ceil((job.cbm || 0) / 28);
+        
+        reportHTML += `
+            <tr>
+                <td>${job.no}</td>
+                <td>${job.customer}</td>
+                <td>${job.origin} → ${job.destination}</td>
+                <td>${(job.cbm || 0).toFixed(2)}</td>
+                <td>${containers}</td>
+                <td>₹${Math.round(revenue).toLocaleString('en-IN')}</td>
+                <td><span class="status-${job.status}">${job.status.toUpperCase()}</span></td>
+            </tr>
+        `;
+    });
+    
+    reportHTML += '</tbody></table>';
+    document.getElementById('reportData').innerHTML = reportHTML;
+    document.getElementById('reportModal').style.display = 'block';
+}
+
+function showAirFreightReport() {
+    const jobs = window.workflowManager.getJobs();
+    const airJobs = jobs.filter(j => j.mode === 'air' || j.origin?.includes('Airport') || j.destination?.includes('Airport'));
+    
+    document.getElementById('reportTitle').textContent = '✈️ Air Freight Report';
+    
+    const totalWeight = airJobs.reduce((sum, job) => sum + (job.weight || (job.cbm || 0) * 167), 0);
+    const totalRevenue = airJobs.reduce((sum, job) => sum + ((job.customerRate || 0) * (job.cbm || 0)), 0) * 80;
+    const totalCBM = airJobs.reduce((sum, job) => sum + (job.cbm || 0), 0);
+    
+    let reportHTML = `
+        <div class="report-summary">
+            <h4>Air Freight Summary</h4>
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <label>Total Shipments:</label>
+                    <span>${airJobs.length}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Total Weight:</label>
+                    <span>${Math.round(totalWeight).toLocaleString('en-IN')} kg</span>
+                </div>
+                <div class="summary-item">
+                    <label>Total CBM:</label>
+                    <span>${totalCBM.toFixed(2)}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Total Revenue:</label>
+                    <span>₹${Math.round(totalRevenue).toLocaleString('en-IN')}</span>
+                </div>
+            </div>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Job No</th>
+                    <th>Customer</th>
+                    <th>Route</th>
+                    <th>Weight (kg)</th>
+                    <th>CBM</th>
+                    <th>Revenue</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    airJobs.forEach(job => {
+        const revenue = (job.customerRate || 0) * (job.cbm || 0) * 80;
+        const weight = job.weight || (job.cbm || 0) * 167;
+        
+        reportHTML += `
+            <tr>
+                <td>${job.no}</td>
+                <td>${job.customer}</td>
+                <td>${job.origin} → ${job.destination}</td>
+                <td>${Math.round(weight).toLocaleString('en-IN')}</td>
+                <td>${(job.cbm || 0).toFixed(2)}</td>
+                <td>₹${Math.round(revenue).toLocaleString('en-IN')}</td>
+                <td><span class="status-${job.status}">${job.status.toUpperCase()}</span></td>
+            </tr>
+        `;
+    });
+    
+    reportHTML += '</tbody></table>';
+    document.getElementById('reportData').innerHTML = reportHTML;
+    document.getElementById('reportModal').style.display = 'block';
+}
+
+function showCourierReport() {
+    const jobs = window.workflowManager.getJobs();
+    const courierJobs = jobs.filter(j => j.mode === 'courier' || j.serviceType === 'express');
+    
+    document.getElementById('reportTitle').textContent = '📦 Courier Report';
+    
+    const totalShipments = courierJobs.length;
+    const totalRevenue = courierJobs.reduce((sum, job) => sum + ((job.customerRate || 0) * (job.cbm || 0)), 0) * 80;
+    const totalWeight = courierJobs.reduce((sum, job) => sum + (job.weight || (job.cbm || 0) * 167), 0);
+    
+    let reportHTML = `
+        <div class="report-summary">
+            <h4>Courier Summary</h4>
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <label>Total Shipments:</label>
+                    <span>${totalShipments}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Express Deliveries:</label>
+                    <span>${courierJobs.filter(j => j.serviceType === 'express').length}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Total Weight:</label>
+                    <span>${Math.round(totalWeight).toLocaleString('en-IN')} kg</span>
+                </div>
+                <div class="summary-item">
+                    <label>Total Revenue:</label>
+                    <span>₹${Math.round(totalRevenue).toLocaleString('en-IN')}</span>
+                </div>
+            </div>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Job No</th>
+                    <th>Customer</th>
+                    <th>Destination</th>
+                    <th>Service Type</th>
+                    <th>Weight (kg)</th>
+                    <th>Revenue</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    courierJobs.forEach(job => {
+        const revenue = (job.customerRate || 0) * (job.cbm || 0) * 80;
+        const weight = job.weight || (job.cbm || 0) * 167;
+        
+        reportHTML += `
+            <tr>
+                <td>${job.no}</td>
+                <td>${job.customer}</td>
+                <td>${job.destination}</td>
+                <td>${job.serviceType || 'Standard'}</td>
+                <td>${Math.round(weight).toLocaleString('en-IN')}</td>
+                <td>₹${Math.round(revenue).toLocaleString('en-IN')}</td>
+                <td><span class="status-${job.status}">${job.status.toUpperCase()}</span></td>
+            </tr>
+        `;
+    });
+    
+    reportHTML += '</tbody></table>';
+    document.getElementById('reportData').innerHTML = reportHTML;
+    document.getElementById('reportModal').style.display = 'block';
 }
 
 function setDefaultDates() {

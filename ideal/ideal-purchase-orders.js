@@ -120,31 +120,47 @@ function initializeDefaultVendors() {
     const vendors = window.purchaseOrderManager.getVendors();
     
     if (vendors.length === 0) {
-        // Add default vendors
+        // Add default freight agents/vendors
         const defaultVendors = [
             {
-                name: 'Karachi Port Trust',
-                contact: 'Port Manager',
-                email: 'info@kpt.gov.pk',
-                phone: '+92-21-99201000',
-                address: 'Karachi Port, Karachi',
-                category: 'Port Services'
+                name: 'Emirates SkyCargo',
+                contact: 'Cargo Manager',
+                email: 'cargo@emirates.com',
+                phone: '+971-4-2162000',
+                address: 'Dubai International Airport',
+                category: 'Airline Agent'
             },
             {
-                name: 'Pakistan Customs',
-                contact: 'Customs Officer',
-                email: 'info@customs.gov.pk',
-                phone: '+92-21-99201100',
-                address: 'Customs House, Karachi',
-                category: 'Government'
+                name: 'Maersk Line',
+                contact: 'Booking Agent',
+                email: 'booking@maersk.com',
+                phone: '+92-21-35630100',
+                address: 'Karachi Port',
+                category: 'Shipping Line'
             },
             {
-                name: 'Freight Forwarders Association',
-                contact: 'Association Head',
-                email: 'info@pfa.org.pk',
+                name: 'DHL Express',
+                contact: 'Account Manager',
+                email: 'sales@dhl.com',
+                phone: '+92-21-111-345-000',
+                address: 'DHL Hub Karachi',
+                category: 'Courier Agent'
+            },
+            {
+                name: 'Pakistan Customs Agent',
+                contact: 'Clearing Agent',
+                email: 'info@customsagent.pk',
                 phone: '+92-21-32456789',
-                address: 'Karachi Chamber, Karachi',
-                category: 'Services'
+                address: 'Customs House Karachi',
+                category: 'Customs Clearance'
+            },
+            {
+                name: 'Local Transport Co.',
+                contact: 'Fleet Manager',
+                email: 'dispatch@transport.pk',
+                phone: '+92-21-34567890',
+                address: 'Karachi Transport Hub',
+                category: 'Local Transport'
             }
         ];
         
@@ -251,65 +267,69 @@ function createPurchaseOrder() {
     document.getElementById('createPOModal').style.display = 'block';
 }
 
-function updateInvoiceFields() {
-    const invoiceType = document.getElementById('invoiceType').value;
+function updateServiceFields() {
+    // Simple function - no complex fields to show/hide
+    updateCurrencySymbol();
+    calculateTotal();
+}
+
+// Currency exchange rates (approximate)
+const exchangeRates = {
+    PKR: 1,
+    USD: 280,
+    EUR: 305,
+    GBP: 355,
+    AED: 76,
+    SAR: 75
+};
+
+function updateCurrencySymbol() {
+    const currency = document.getElementById('currency').value;
+    const symbols = {
+        PKR: '₹',
+        USD: '$',
+        EUR: '€',
+        GBP: '£',
+        AED: 'AED',
+        SAR: 'SAR'
+    };
     
-    // Hide all fields first
-    document.getElementById('airlineFields').style.display = 'none';
-    document.getElementById('shippingFields').style.display = 'none';
-    document.getElementById('courierFields').style.display = 'none';
+    const symbol = symbols[currency] || '₹';
+    document.getElementById('currencySymbol').textContent = symbol;
+    document.getElementById('currencySymbol2').textContent = symbol;
+    document.getElementById('currencySymbol3').textContent = symbol;
+    document.getElementById('currencySymbol4').textContent = symbol;
+    document.getElementById('currencySymbol5').textContent = symbol;
     
-    // Show relevant fields
-    if (invoiceType === 'airline') {
-        document.getElementById('airlineFields').style.display = 'block';
-    } else if (invoiceType === 'shipping') {
-        document.getElementById('shippingFields').style.display = 'block';
-    } else if (invoiceType === 'courier') {
-        document.getElementById('courierFields').style.display = 'block';
-    }
+    // Update exchange rate
+    const rate = exchangeRates[currency] || 1;
+    document.getElementById('exchangeRate').value = rate;
     
     calculateTotal();
 }
 
 function calculateTotal() {
-    const invoiceType = document.getElementById('invoiceType').value;
-    let subtotal = 0;
-    let typeSpecificCharges = 0;
-    
-    if (invoiceType === 'airline') {
-        const weight = parseFloat(document.getElementById('weight').value) || 0;
-        const rate = parseFloat(document.getElementById('ratePerKg').value) || 0;
-        const fuel = parseFloat(document.getElementById('fuelSurcharge').value) || 0;
-        const security = parseFloat(document.getElementById('securityFee').value) || 0;
-        subtotal = weight * rate;
-        typeSpecificCharges = fuel + security;
-    } else if (invoiceType === 'shipping') {
-        const qty = parseFloat(document.getElementById('containerQty').value) || 0;
-        const rate = parseFloat(document.getElementById('ratePerContainer').value) || 0;
-        const port = parseFloat(document.getElementById('portCharges').value) || 0;
-        const docs = parseFloat(document.getElementById('shippingDocs').value) || 0;
-        subtotal = qty * rate;
-        typeSpecificCharges = port + docs;
-    } else if (invoiceType === 'courier') {
-        const pieces = parseFloat(document.getElementById('pieces').value) || 0;
-        const rate = parseFloat(document.getElementById('ratePerPiece').value) || 0;
-        const cod = parseFloat(document.getElementById('codCharges').value) || 0;
-        const insurance = parseFloat(document.getElementById('insurance').value) || 0;
-        subtotal = pieces * rate;
-        typeSpecificCharges = cod + insurance;
-    }
-    
+    const quantity = parseFloat(document.getElementById('quantity').value) || 1;
+    const rate = parseFloat(document.getElementById('negotiatedRate').value) || 0;
     const additional = parseFloat(document.getElementById('additionalCharges').value) || 0;
-    const total = subtotal + typeSpecificCharges + additional;
+    const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+    const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 1;
+    
+    const subtotal = (quantity * rate) + additional;
+    const taxAmount = subtotal * (taxRate / 100);
+    const total = subtotal + taxAmount;
+    const pkrEquivalent = total * exchangeRate;
     
     document.getElementById('subtotal').value = subtotal.toFixed(2);
+    document.getElementById('taxAmount').value = taxAmount.toFixed(2);
     document.getElementById('totalAmount').value = total.toFixed(2);
+    document.getElementById('pkrEquivalent').value = '₹' + pkrEquivalent.toLocaleString('en-IN', {maximumFractionDigits: 2});
 }
 
 function closePOModal() {
     document.getElementById('createPOModal').style.display = 'none';
     document.getElementById('createPOForm').reset();
-    updateInvoiceFields();
+    document.getElementById('totalAmount').value = '0.00';
 }
 
 function viewPO(poId) {
@@ -421,63 +441,40 @@ if (createPOForm) {
     createPOForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const invoiceType = document.getElementById('invoiceType').value;
+        const serviceType = document.getElementById('serviceType').value;
         const vendorId = document.getElementById('vendorSelect').value;
+        const description = document.getElementById('serviceDescription').value;
+        const quantity = parseFloat(document.getElementById('quantity').value) || 1;
+        const rate = parseFloat(document.getElementById('negotiatedRate').value);
         const totalAmount = parseFloat(document.getElementById('totalAmount').value);
         
-        if (!invoiceType || !vendorId || !totalAmount) {
+        if (!serviceType || !vendorId || !description || !rate) {
             alert('❌ Please fill all required fields!');
             return;
         }
         
         const vendor = window.purchaseOrderManager.getVendors().find(v => v.id === vendorId);
-        let itemDescription = '';
-        let items = [];
+        const unit = document.getElementById('unit').value || 'Job';
+        const jobRef = document.getElementById('jobReference').value;
         
-        // Build item description based on type
-        if (invoiceType === 'airline') {
-            const weight = document.getElementById('weight').value;
-            const rate = document.getElementById('ratePerKg').value;
-            const flight = document.getElementById('flightNumber').value;
-            itemDescription = `Airline Freight - ${flight} (${weight}kg @ ₹${rate}/kg)`;
-            items = [{
-                name: itemDescription,
-                quantity: parseFloat(weight),
-                unitPrice: parseFloat(rate),
-                totalPrice: totalAmount
-            }];
-        } else if (invoiceType === 'shipping') {
-            const qty = document.getElementById('containerQty').value;
-            const rate = document.getElementById('ratePerContainer').value;
-            const vessel = document.getElementById('vesselName').value;
-            const containerType = document.getElementById('containerType').value;
-            itemDescription = `Sea Freight - ${vessel} (${qty}x ${containerType} @ ₹${rate})`;
-            items = [{
-                name: itemDescription,
-                quantity: parseFloat(qty),
-                unitPrice: parseFloat(rate),
-                totalPrice: totalAmount
-            }];
-        } else if (invoiceType === 'courier') {
-            const pieces = document.getElementById('pieces').value;
-            const rate = document.getElementById('ratePerPiece').value;
-            const service = document.getElementById('serviceType').value;
-            const destination = document.getElementById('destination').value;
-            itemDescription = `Courier Service - ${service} to ${destination} (${pieces} pieces @ ₹${rate})`;
-            items = [{
-                name: itemDescription,
-                quantity: parseFloat(pieces),
-                unitPrice: parseFloat(rate),
-                totalPrice: totalAmount
-            }];
-        }
+        const items = [{
+            name: description,
+            quantity: quantity,
+            unit: unit,
+            unitPrice: rate,
+            totalPrice: totalAmount
+        }];
         
         const poData = {
             vendorId: vendor.id,
             vendorName: vendor.name,
-            invoiceType: invoiceType,
+            serviceType: serviceType,
             items: items,
             totalAmount: totalAmount,
+            jobNo: jobRef,
+            requiredDate: document.getElementById('requiredDate').value,
+            paymentTerms: document.getElementById('paymentTerms').value,
+            priority: document.getElementById('priority').value,
             notes: document.getElementById('notes').value
         };
         
@@ -486,7 +483,7 @@ if (createPOForm) {
         loadPurchaseOrdersData();
         closePOModal();
         
-        alert(`✅ Purchase Order Created!\n\n📋 PO: ${po.id}\n👥 Vendor: ${po.vendorName}\n📦 Type: ${invoiceType}\n💰 Amount: ₹${po.totalAmount.toLocaleString('en-IN')}`);
+        alert(`✅ Purchase Order Created!\n\n📋 PO: ${po.id}\n👥 Vendor: ${po.vendorName}\n🔧 Service: ${serviceType}\n💰 Amount: ₹${po.totalAmount.toLocaleString('en-IN')}\n${jobRef ? `🔗 Job: ${jobRef}` : ''}`);
     });
 }
 

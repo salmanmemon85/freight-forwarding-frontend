@@ -28,6 +28,13 @@ if (!window.SidebarManager) {
                 'ideal-quotations.html': 'quotations',
                 'ideal-jobs.html': 'jobs',
                 'ideal-documents.html': 'documents',
+                'bill-of-lading.html': 'documents',
+                'delivery-order.html': 'documents',
+                'air-waybill.html': 'documents',
+                'arrival-notice.html': 'documents',
+                'commercial-invoice.html': 'documents',
+                'packing-list.html': 'documents',
+                'ideal-purchase-orders.html': 'purchase-orders',
                 'ideal-billing.html': 'billing',
                 'ideal-payments.html': 'payments',
                 'ideal-outstanding.html': 'outstanding',
@@ -70,6 +77,30 @@ if (!window.SidebarManager) {
                     <p id="currentUser">Loading...</p>
                     <button onclick="logout()" class="logout-btn">Logout</button>
                 </div>
+                <style>
+                    .sub-menu {
+                        display: none;
+                        padding-left: 20px;
+                        background: rgba(0,0,0,0.1);
+                    }
+                    .nav-item.active + .sub-menu,
+                    .nav-menu li:hover .sub-menu {
+                        display: block;
+                    }
+                    .sub-item {
+                        display: block;
+                        padding: 8px 15px;
+                        color: #ccc;
+                        text-decoration: none;
+                        font-size: 14px;
+                        border-left: 2px solid transparent;
+                    }
+                    .sub-item:hover {
+                        background: rgba(255,255,255,0.1);
+                        border-left-color: #007bff;
+                        color: white;
+                    }
+                </style>
             `;
 
             sidebar.innerHTML = sidebarHTML;
@@ -78,6 +109,24 @@ if (!window.SidebarManager) {
 
         renderMenuItem(item) {
             const isActive = item.id === this.currentPage ? 'active' : '';
+            
+            if (item.submenu && item.submenu.length > 0) {
+                const submenuHTML = item.submenu.map(subItem => 
+                    `<li><a href="${subItem.url}" class="sub-item">${subItem.icon} ${subItem.label}</a></li>`
+                ).join('');
+                
+                return `
+                    <li>
+                        <a href="${item.url}" class="nav-item ${isActive}">
+                            ${item.icon} ${item.label}
+                        </a>
+                        <ul class="sub-menu">
+                            ${submenuHTML}
+                        </ul>
+                    </li>
+                `;
+            }
+            
             return `
                 <li>
                     <a href="${item.url}" class="nav-item ${isActive}">
@@ -112,6 +161,7 @@ if (!window.SidebarManager) {
                     <li><a href="ideal-parties.html" class="nav-item">👥 Parties</a></li>
                     <li><a href="ideal-jobs.html" class="nav-item">💼 Jobs</a></li>
                     <li><a href="ideal-documents.html" class="nav-item">📄 Documents</a></li>
+                    <li><a href="ideal-purchase-orders.html" class="nav-item">🛒 Purchase Orders</a></li>
                     <li><a href="ideal-billing.html" class="nav-item">🧾 Billing</a></li>
                     <li><a href="accounts.html" class="nav-item">🧮 Accounts</a></li>
                     <li><a href="ideal-users.html" class="nav-item">👤 Users</a></li>
