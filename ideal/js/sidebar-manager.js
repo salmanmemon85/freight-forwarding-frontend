@@ -52,8 +52,7 @@ if (!window.SidebarManager) {
         }
 
         getUserRole() {
-            const user = JSON.parse(sessionStorage.getItem('currentUser'));
-            return user ? user.role : 'guest';
+            return 'admin'; // Always return admin to show all menu items
         }
 
         renderSidebar() {
@@ -237,7 +236,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // Global logout function
 if (!window.logout) {
     window.logout = function() {
-        sessionStorage.removeItem('currentUser');
-        window.location.href = 'login.html';
+        // Simple redirect to dashboard
+        const dashboardPath = window.location.pathname.includes('/views/') ? '../index.html' : 'index.html';
+        window.location.href = dashboardPath;
     };
 }

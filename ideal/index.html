@@ -134,15 +134,5 @@
     <script src="js/sidebar-manager.js"></script>
     <script src="js/workflow-manager.js"></script>
     <script src="js/ideal-dashboard.js"></script>
-    <script>
-        // Check user session on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const user = JSON.parse(sessionStorage.getItem('currentUser'));
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-        });
-    </script>
 </body>
 </html>
