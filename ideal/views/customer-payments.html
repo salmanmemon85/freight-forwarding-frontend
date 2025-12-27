@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Payments - Quick Shipping</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/bootstrap-fix.css">
+    <link rel="stylesheet" href="../css/ideal-style.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <nav class="sidebar">
+            <!-- Sidebar will be dynamically generated -->
+        </nav>
+
+        <main class="main-content">
+            <div class="header">
+                <h1><i class="fas fa-credit-card me-2"></i>Customer Payments</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                        <i class="fas fa-plus me-2"></i>Record Payment
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="filter-bar">
+                    <select id="customerFilter" class="form-select">
+                        <option value="">All Customers</option>
+                    </select>
+                    <select id="statusFilter" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="received">Received</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                    <input type="date" id="dateFilter" class="form-control">
+                    <button class="btn btn-primary" onclick="filterPayments()">Filter</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Payment ID</th>
+                                <th>Customer</th>
+                                <th>Job Number</th>
+                                <th>Amount</th>
+                                <th>Payment Method</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PAY-001</td>
+                                <td>ABC Company</td>
+                                <td>IMP-001</td>
+                                <td>PKR 150,000</td>
+                                <td>Bank Transfer</td>
+                                <td><span class="badge bg-success">Received</span></td>
+                                <td>2024-01-15</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">View</button>
+                                    <button class="btn btn-sm btn-outline-secondary">Receipt</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Payment Modal -->
+    <div class="modal fade" id="addPaymentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Record Customer Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Customer</label>
+                                <select class="form-select" required>
+                                    <option>Select Customer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Job Number</label>
+                                <select class="form-select" required>
+                                    <option>Select Job</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Amount</label>
+                                <input type="number" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Payment Method</label>
+                                <select class="form-select" required>
+                                    <option>Bank Transfer</option>
+                                    <option>Cash</option>
+                                    <option>Cheque</option>
+                                    <option>Online</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Payment Date</label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Reference Number</label>
+                                <input type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Record Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/sidebar-manager.js"></script>
+    <script src="../js/workflow-manager.js"></script>
+</body>
+</html>

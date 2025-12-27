@@ -1,0 +1,166 @@
+{
+  "logo": {
+    "title": "Quick Shipping",
+    "subtitle": ""
+  },
+  "menuItems": [
+    {
+      "id": "dashboard",
+      "icon": "📊",
+      "label": "Dashboard",
+      "url": "index.html",
+      "roles": ["admin", "manager", "sales", "operations", "accounts"]
+    },
+    {
+      "id": "customers",
+      "icon": "👥",
+      "label": "Customers",
+      "roles": ["admin", "manager", "sales", "accounts"],
+      "submenu": [
+        {
+          "id": "customer-list",
+          "icon": "👤",
+          "label": "Customer List",
+          "url": "views/customers.html"
+        },
+        {
+          "id": "customer-payments",
+          "icon": "💳",
+          "label": "Payments",
+          "url": "views/customer-payments.html"
+        }
+      ]
+    },
+    {
+      "id": "agents",
+      "icon": "🤝",
+      "label": "Agents",
+      "roles": ["admin", "manager", "sales", "accounts"],
+      "submenu": [
+        {
+          "id": "agent-list",
+          "icon": "🤝",
+          "label": "Agent List",
+          "url": "views/agents.html"
+        },
+        {
+          "id": "agent-payments",
+          "icon": "💳",
+          "label": "Payments",
+          "url": "views/agent-payments.html"
+        }
+      ]
+    },
+    {
+      "id": "import",
+      "icon": "📥",
+      "label": "Import",
+      "roles": ["admin", "manager", "sales", "operations"],
+      "submenu": [
+        {
+          "id": "import-enquiry",
+          "icon": "📞",
+          "label": "Enquiry",
+          "url": "views/ideal-enquiries.html"
+        },
+        {
+          "id": "import-quotation",
+          "icon": "💰",
+          "label": "Quotation",
+          "url": "views/ideal-quotations.html"
+        },
+        {
+          "id": "import-jobs",
+          "icon": "💼",
+          "label": "Jobs",
+          "url": "views/ideal-jobs.html"
+        },
+        {
+          "id": "import-documentation",
+          "icon": "📄",
+          "label": "Documentation",
+          "url": "views/import-documentation.html"
+        },
+        {
+          "id": "import-invoicing",
+          "icon": "🧾",
+          "label": "Invoicing",
+          "url": "views/ideal-billing.html"
+        }
+      ]
+    },
+    {
+      "id": "export",
+      "icon": "📤",
+      "label": "Export",
+      "roles": ["admin", "manager", "sales", "operations"],
+      "submenu": [
+        {
+          "id": "export-enquiry",
+          "icon": "📞",
+          "label": "Enquiry",
+          "url": "views/ideal-enquiries.html"
+        },
+        {
+          "id": "export-quotation",
+          "icon": "💰",
+          "label": "Quotation",
+          "url": "views/ideal-quotations.html"
+        },
+        {
+          "id": "export-jobs",
+          "icon": "💼",
+          "label": "Jobs",
+          "url": "views/ideal-jobs.html"
+        },
+        {
+          "id": "export-documentation",
+          "icon": "📄",
+          "label": "Documentation",
+          "url": "views/export-documentation.html"
+        },
+        {
+          "id": "export-invoicing",
+          "icon": "🧾",
+          "label": "Invoicing",
+          "url": "views/ideal-billing.html"
+        }
+      ]
+    },
+    {
+      "id": "export-port-list",
+      "icon": "🚢",
+      "label": "Export Port List",
+      "url": "views/export-port-list.html",
+      "roles": ["admin", "manager", "operations"]
+    },
+    {
+      "id": "import-port-list",
+      "icon": "⚓",
+      "label": "Import Port List",
+      "url": "views/import-port-list.html",
+      "roles": ["admin", "manager", "operations"]
+    },
+    {
+      "id": "currency",
+      "icon": "💱",
+      "label": "Currency",
+      "url": "views/currency.html",
+      "roles": ["admin", "manager", "accounts"]
+    },
+    {
+      "id": "users",
+      "icon": "👤",
+      "label": "Users",
+      "url": "views/users.html",
+      "roles": ["admin", "manager"]
+    },
+    {
+      "id": "commission-strategy",
+      "icon": "💼",
+      "label": "Commission Strategy",
+      "url": "views/commission-strategy.html",
+      "roles": ["admin", "manager"]
+    }
+  ]
+}

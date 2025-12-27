@@ -10,7 +10,11 @@ if (!window.SidebarManager) {
 
         async loadConfig() {
             try {
-                const response = await fetch('sidebar-config.json');
+                // Check if we're in root or views folder
+                const configPath = window.location.pathname.includes('/views/') 
+                    ? '../config/sidebar-config.json' 
+                    : 'config/sidebar-config.json';
+                const response = await fetch(configPath);
                 this.config = await response.json();
                 this.renderSidebar();
             } catch (error) {
@@ -74,7 +78,6 @@ if (!window.SidebarManager) {
                     ${allowedMenuItems.map(item => this.renderMenuItem(item)).join('')}
                 </ul>
                 <div class="user-info">
-                    <p id="currentUser">Loading...</p>
                     <button onclick="logout()" class="logout-btn">Logout</button>
                 </div>
                 <style>
@@ -110,14 +113,34 @@ if (!window.SidebarManager) {
         renderMenuItem(item) {
             const isActive = item.id === this.currentPage ? 'active' : '';
             
+            // Adjust URL based on current location
+            const adjustUrl = (url) => {
+                if (!url) return '#';
+                
+                // Special handling for index.html (dashboard)
+                if (url === 'index.html') {
+                    return window.location.pathname.includes('/views/') ? '../index.html' : 'index.html';
+                }
+                
+                // If we're in views folder and URL starts with views/, remove the views/ prefix
+                if (window.location.pathname.includes('/views/') && url.startsWith('views/')) {
+                    return url.replace('views/', '');
+                }
+                // If we're in root and URL doesn't start with views/, add views/ prefix
+                if (!window.location.pathname.includes('/views/') && !url.startsWith('views/')) {
+                    return 'views/' + url;
+                }
+                return url;
+            };
+            
             if (item.submenu && item.submenu.length > 0) {
                 const submenuHTML = item.submenu.map(subItem => 
-                    `<li><a href="${subItem.url}" class="sub-item">${subItem.icon} ${subItem.label}</a></li>`
+                    `<li><a href="${adjustUrl(subItem.url)}" class="sub-item">${subItem.icon} ${subItem.label}</a></li>`
                 ).join('');
                 
                 return `
                     <li>
-                        <a href="${item.url}" class="nav-item ${isActive}">
+                        <a href="${adjustUrl(item.url)}" class="nav-item ${isActive}">
                             ${item.icon} ${item.label}
                         </a>
                         <ul class="sub-menu">
@@ -129,7 +152,7 @@ if (!window.SidebarManager) {
             
             return `
                 <li>
-                    <a href="${item.url}" class="nav-item ${isActive}">
+                    <a href="${adjustUrl(item.url)}" class="nav-item ${isActive}">
                         ${item.icon} ${item.label}
                     </a>
                 </li>
@@ -137,13 +160,7 @@ if (!window.SidebarManager) {
         }
 
         updateUserInfo() {
-            const user = JSON.parse(sessionStorage.getItem('currentUser'));
-            const userElement = document.getElementById('currentUser');
-            
-            if (user && userElement) {
-                userElement.textContent = 
-                    `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} - ${user.branch.charAt(0).toUpperCase() + user.branch.slice(1)} Branch`;
-            }
+            // No user info to display, just logout button
         }
 
         renderFallbackSidebar() {
@@ -168,7 +185,6 @@ if (!window.SidebarManager) {
                     <li><a href="ideal-payroll.html" class="nav-item">💰 Payroll</a></li>
                 </ul>
                 <div class="user-info">
-                    <p id="currentUser">Loading...</p>
                     <button onclick="logout()" class="logout-btn">Logout</button>
                 </div>
             `;

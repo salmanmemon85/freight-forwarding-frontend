@@ -6,7 +6,8 @@
     <title>FreightW - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="bootstrap-fix.css">
+    <link rel="stylesheet" href="css/bootstrap-fix.css">
+    <link rel="stylesheet" href="css/ideal-style.css">
 </head>
 <body>
     <div class="app-container">
@@ -81,19 +82,19 @@
                 <div class="quick-actions">
                     <h3>Quick Actions</h3>
                     <div class="action-buttons">
-                        <button onclick="location.href='ideal-enquiries.html'" class="action-btn">
+                        <button onclick="location.href='views/ideal-enquiries.html'" class="action-btn">
                             <i class="fas fa-plus"></i>
                             New Enquiry
                         </button>
-                        <button onclick="location.href='ideal-quotations.html'" class="action-btn">
+                        <button onclick="location.href='views/ideal-quotations.html'" class="action-btn">
                             <i class="fas fa-file-invoice-dollar"></i>
                             Create Quote
                         </button>
-                        <button onclick="location.href='ideal-jobs.html'" class="action-btn">
+                        <button onclick="location.href='views/ideal-jobs.html'" class="action-btn">
                             <i class="fas fa-briefcase"></i>
                             New Job
                         </button>
-                        <button onclick="location.href='ideal-billing.html'" class="action-btn">
+                        <button onclick="location.href='views/ideal-billing.html'" class="action-btn">
                             <i class="fas fa-receipt"></i>
                             Create Invoice
                         </button>
@@ -130,9 +131,9 @@
         </div>
     </div>
 
-    <script src="sidebar-manager.js"></script>
-    <script src="workflow-manager.js"></script>
-    <script src="ideal-dashboard.js"></script>
+    <script src="js/sidebar-manager.js"></script>
+    <script src="js/workflow-manager.js"></script>
+    <script src="js/ideal-dashboard.js"></script>
     <script>
         // Check user session on page load
         document.addEventListener('DOMContentLoaded', function() {
